@@ -71,9 +71,9 @@ $results = FB_Request_Monkey::sendOne($action);
 
 ## Labelling / Grouping
 
-If you want the data that's returned to be grouped, add a label parameter to the action
+If you want the data that's returned to be grouped, add a label parameter to the action.
 
-php```
+```php
 $actions = array(
 	array(
 		'query' => 'me/friends',
@@ -93,7 +93,6 @@ $actions = array(
 		),
 		'label' = 'bar',
 	),
-	
 	$results = FB_Request_Monkey::sendMany($actions);
 );
 ```
