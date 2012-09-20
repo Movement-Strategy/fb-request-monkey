@@ -97,8 +97,8 @@ $actions = array(
 		),
 		'label' = 'bar',
 	),
-	$results = FB_Request_Monkey::sendMany($actions);
 );
+$results = FB_Request_Monkey::sendMany($actions);
 ```
 ### Labelled Results
 
