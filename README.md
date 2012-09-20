@@ -23,9 +23,48 @@ The Facebook API needs to be initialized with a config array before requests can
  ```
     
 ### In a Config File
-	```php	
-    FB_Request_Monkey::initialize($fbConfig);
-    ```
+```php	
+FB_Request_Monkey::initialize($fbConfig);
+```
+
+## Usage
+
+To make requests, build individual actions out of the query you want to make, the access token for that query, and the method.  The actions will be automatically batched.
+
+```php
+$actions = array(
+	array(
+		'query' => 'me/friends',
+		'method' => 'GET',
+		'params' => array(
+			'param1' => 'test',
+		),
+	),
+	array(
+		'query' => 'me',
+		'method' => 'GET',
+		'params' => array(
+			'param1' => 'test',
+		),
+	),
+);
+
+$results = FB_Request_Monkey::sendMany($actions);
+```
+
+## Single Action
+```php
+
+$action = array(
+	'query' => 'me/friends',
+	'method' => 'GET',
+	'params' => array(
+		'param1' => 'test',
+	),
+);
+
+$results = FB_Request_Monkey::sendOne($action);
+```
 
 
 
