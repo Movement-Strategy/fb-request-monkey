@@ -67,7 +67,7 @@ $action = array(
 );
 
 $results = FB_Request_Monkey::sendOne($action);
-
+```
 
 ## Labelling / Grouping
 
