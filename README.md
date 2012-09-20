@@ -9,6 +9,10 @@ Requires php underscore and the most recent version of the Facebook PHP SDK
 
 ## Installation
 
+```php
+require('fb_request_monkey.php');
+```
+
 The Facebook API needs to be initialized with a config array before requests can be made.
 	
 ### In Function
