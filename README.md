@@ -12,15 +12,15 @@ Requires php underscore and the most recent version of the Facebook PHP SDK
 The Facebook API needs to be initialized with a config array before requests can be made.
 	
 ### In Function
-	```php
-     $fbConfig = array(
-     	'appId' => 1000,
-     	'secret' => 'asdfsds',
-     	'cookie' => true,	
-     );
-    
-     $results = FB_Request_Monkey::sendMany($actions, $fbConfig);
-     ```
+```php
+ $fbConfig = array(
+ 	'appId' => 1000,
+ 	'secret' => 'asdfsds',
+ 	'cookie' => true,	
+ );
+
+ $results = FB_Request_Monkey::sendMany($actions, $fbConfig);
+ ```
     
 ### In a Config File
 	```php	
