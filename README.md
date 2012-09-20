@@ -36,6 +36,7 @@ $actions = array(
 	array(
 		'query' => 'me/friends',
 		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
 		'params' => array(
 			'param1' => 'test',
 		),
@@ -43,6 +44,7 @@ $actions = array(
 	array(
 		'query' => 'me',
 		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
 		'params' => array(
 			'param1' => 'test',
 		),
@@ -52,11 +54,12 @@ $actions = array(
 $results = FB_Request_Monkey::sendMany($actions);
 ```
 
-## Single Action
+# Single Action
 ```php
 
 $action = array(
 	'query' => 'me/friends',
+	'token' => 'ADLFKJSDFS97823987'
 	'method' => 'GET',
 	'params' => array(
 		'param1' => 'test',
@@ -64,22 +67,45 @@ $action = array(
 );
 
 $results = FB_Request_Monkey::sendOne($action);
+
+
+## Labelling / Grouping
+
+If you want the data that's returned to be grouped, add a label parameter to the action
+
+php```
+$actions = array(
+	array(
+		'query' => 'me/friends',
+		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
+		'params' => array(
+			'param1' => 'test',
+		),
+		'label' => 'foo',
+	),
+	array(
+		'query' => 'me',
+		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
+		'params' => array(
+			'param1' => 'test',
+		),
+		'label' = 'bar',
+	),
+	
+	$results = FB_Request_Monkey::sendMany($actions);
+);
 ```
+# Labelled Results
 
-
-
-Then, install all the dependencies and start mongodb:
-
-    $ cd attendance
-    $ npm install
-    $ sudo /etc/init.d/mongodb start  # or the variant for your system
-
-If you encounter an error with bcrypt during `npm install` it's posible that
-your openssl doesn't have the config files that are installed with 
-`libssl-dev`, installing `libssl-dev` should fix that problem. If you're still
-receving errors, try installing `node-gyp` with `sudo npm install -g node-gyp`.
-
-
-Start the app with:
-
-    $ node app.js
+```php		
+$labelledResults = array(
+	'foo' => array(
+		//data for this label
+	),
+	'bar' => array(
+		//data for this label
+	),
+);
+```
