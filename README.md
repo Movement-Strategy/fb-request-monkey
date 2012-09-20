@@ -54,7 +54,7 @@ $actions = array(
 $results = FB_Request_Monkey::sendMany($actions);
 ```
 
-# Single Action
+### Single Action
 ```php
 
 $action = array(
@@ -69,7 +69,7 @@ $action = array(
 $results = FB_Request_Monkey::sendOne($action);
 ```
 
-## Labelling / Grouping
+# Labelling / Grouping
 
 If you want the data that's returned to be grouped, add a label parameter to the action.
 
@@ -96,7 +96,7 @@ $actions = array(
 	$results = FB_Request_Monkey::sendMany($actions);
 );
 ```
-# Labelled Results
+### Labelled Results
 
 ```php		
 $labelledResults = array(
