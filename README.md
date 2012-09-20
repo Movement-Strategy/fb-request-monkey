@@ -9,9 +9,10 @@ Requires php underscore and the most recent version of the Facebook PHP SDK
 
 ## Installation
 
-The the Facebook API needed to be initialized with a config array 
-Before requests can be mode, there are two ways to do this
-
+The Facebook API needs to be initialized with a config array before requests can be made.
+	
+### In Function
+	```php
      $fbConfig = array(
      	'appId' => 1000,
      	'secret' => 'asdfsds',
@@ -19,12 +20,14 @@ Before requests can be mode, there are two ways to do this
      );
     
      $results = FB_Request_Monkey::sendMany($actions, $fbConfig);
+     ```
     
-Alternatively, you can call the initialize function in a config file
+### In a Config File
+	```php	
+    FB_Request_Monkey::initialize($fbConfig);
+    ```
 
-     FB_Request_Monkey::initialize($fbConfig);
 
-replace `[github username]` with your github username.
 
 Then, install all the dependencies and start mongodb:
 
