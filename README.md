@@ -79,7 +79,7 @@ $results = FB_Request_Monkey::sendOne($action);
 $action = array(
 	'method' => 'GET',
 	'query' => 'fql',
-	'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
+	'token' => 'Aasdlkjaslkjsdf',
 	'params' => array(
 		'q' => 'SELECT uid, name, pic_square FROM user WHERE uid = me()',
 	),
