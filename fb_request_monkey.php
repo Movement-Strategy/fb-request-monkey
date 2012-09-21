@@ -184,11 +184,11 @@
 		 * @return array
 		 */
 		public static function processResponseQueue($responseQueue) {
+			$responseCount = count($responseQueue);
 			$allProcessResponses = __::chain($responseQueue)
 				
 				// iterate over all returned responses
 				->map(function($response) {
-					
 					// get all of the actions
 					$actions = $response['actions'];
 					
@@ -196,7 +196,6 @@
 					$isBatched = $response['isBatched'];
 					
 					if($isBatched) {
-						
 						// get all of the responses in this batch
 						$allResponses = $response['response'];
 						$responseIndex = 0;
@@ -219,8 +218,12 @@
 						return FB_Request_Monkey::processSingleResponse($response, $isBatched, $action);
 					}
 				})
-				->flatten(true)
 			->value();
+			
+			// if there are multiple responses, flatten them into a single array
+			if($responseCount > 1) {
+				$allProcessResponses = __::flatten($allProcessResponses, true);
+			}
 			return $allProcessResponses;
 		}
 		

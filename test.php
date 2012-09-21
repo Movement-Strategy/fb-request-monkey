@@ -18,14 +18,8 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 		$action = array(
 			'method' => 'GET',
-			'query' => 'fql',
+			'query' => 'me',
 			'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
-			'params' => array(
-				'q' => array(
-					'query1' => 'SELECT uid2 FROM friend WHERE uid1 = me()',
-					'query2' => 'SELECT name FROM user WHERE uid IN (SELECT uid2 FROM #query1)',
-				),
-			),
 		);
 		
 		$actions = array();
@@ -37,6 +31,6 @@ require_once('../libs/fb_sdk/facebook.php');
 			$i++;
 		}
 		
-		$data = FB_Request_Monkey::sendMany($actions, $config);
+		$data = FB_Request_Monkey::sendOne($action, $config);
 		
 		echo json_encode($data);
