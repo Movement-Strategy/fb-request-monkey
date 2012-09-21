@@ -73,6 +73,20 @@ $action = array(
 $results = FB_Request_Monkey::sendOne($action);
 ```
 
+### FQL 
+
+```php
+$action = array(
+	'method' => 'GET',
+	'query' => 'fql',
+	'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
+	'params' => array(
+		'q' => 'SELECT uid, name, pic_square FROM user WHERE uid = me()',
+	),
+);
+```
+
+
 # Labelling / Grouping
 
 If you want the data that's returned to be grouped, add a label parameter to the action.
