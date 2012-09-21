@@ -18,6 +18,7 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 		$action = array(
 			'method' => 'GET',
+/* 			'name' => 'test', */
 			'query' => 'me',
 			'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
 		);

@@ -6,6 +6,7 @@
 		public static $actionKeyMap = array(
 			'query' => 'relative_url',
 			'token' => 'access_token',
+			'name' => 'name',
 			'method' => 'method',
 			'params' =>  'params',
 			'label' => 'label',
@@ -43,7 +44,6 @@
 		 * @return array facebook results
 		 */
 		public static function sendMany($actions, $config = null) {
-			
 			self::initialize($config);
 			$results = array();
 			$processedResponses = self::getProcessedResponsesFromActions($actions);
@@ -76,10 +76,11 @@
 		 * @return array
 		 */
 		public static function getProcessedResponsesFromActions($actions) {
+			$actionCount = count($actions);
 			$callQueue = self::getCallQueue($actions);
 			$formattedCallQueue = self::formatCallQueue($callQueue);
 			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
-			$processedResponses = self::processResponseQueue($responseQueue);
+			$processedResponses = self::processResponseQueue($responseQueue, $actionCount);
 			return $processedResponses;
 		}
 		
@@ -183,9 +184,8 @@
 		 * @param array $responseQueue
 		 * @return array
 		 */
-		public static function processResponseQueue($responseQueue) {
-			$responseCount = count($responseQueue);
-			$allProcessResponses = __::chain($responseQueue)
+		public static function processResponseQueue($responseQueue, $actionCount) {
+			$allProcessedResponses = __::chain($responseQueue)
 				
 				// iterate over all returned responses
 				->map(function($response) {
@@ -218,13 +218,12 @@
 						return FB_Request_Monkey::processSingleResponse($response, $isBatched, $action);
 					}
 				})
-			->value();
-			
+			->value();			
 			// if there are multiple responses, flatten them into a single array
-			if($responseCount > 1) {
-				$allProcessResponses = __::flatten($allProcessResponses, true);
+			if($actionCount != 1) {
+				$allProcessedResponses = __::flatten($allProcessedResponses, true);
 			}
-			return $allProcessResponses;
+			return $allProcessedResponses;
 		}
 		
 		/**
@@ -242,6 +241,8 @@
 		 * @return array
 		 */
 		public static function addDataFromProcessedResponseToResults($processedResponse, $results) {
+			echo json_encode($processedResponse);
+			
 			$action = $processedResponse['action'];
 			
 			// get the label for the current resposne from the associated action
@@ -420,6 +421,7 @@
 		 * @return array facebook data
 		 */
 		public static function transmit($call) {			
+			echo json_encode($call);
 			$method = $call['method'];
 			$params = $call['params'];
 			$relativeURL = $call['relative_url'];
@@ -715,15 +717,20 @@
 			$backupToken = null;
 			$preparedActions = __::map($call, function($action) use(&$backupToken){
 				$batchItem = array();
+				$name = isset($action['name']) ? $action['name'] : null;
 				$params = isset($action['params']) ? $action['params'] : null;
 				$method = $action['method'];
 				$relativeURL = $action['relative_url'];
 				$relativeURL = FB_Request_Monkey::addParamsToRelativeURL($relativeURL, $params);
 				$backupToken = $action['access_token'];
-				return array(
+				$preparedAction = array(
 					'method' => $method,
 					'relative_url' => FB_Request_Monkey::formatRelativeURL($relativeURL),
 				);
+				if($name) {
+					$preparedAction['name'] = $name;
+				}
+				return $preparedAction;
 			});
 			$batchParams = array(
 				'batch' => $preparedActions,
