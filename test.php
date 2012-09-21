@@ -21,7 +21,10 @@ require_once('../libs/fb_sdk/facebook.php');
 			'query' => 'fql',
 			'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
 			'params' => array(
-				'q' => 'SELECT uid, name, pic_square FROM user WHERE uid = me()',
+				'q' => array(
+					'query1' => 'SELECT uid2 FROM friend WHERE uid1 = me()',
+					'query2' => 'SELECT name FROM user WHERE uid IN (SELECT uid2 FROM #query1)',
+				),
 			),
 		);
 		

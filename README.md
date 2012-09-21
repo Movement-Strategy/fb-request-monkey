@@ -86,6 +86,25 @@ $action = array(
 );
 ```
 
+### FQL MultiQuery
+
+This would return all of the names of all of the friends for the current users
+
+```php
+$action = array(
+	'method' => 'GET',
+	'query' => 'fql',
+	'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
+	'params' => array(
+		'q' => array(
+			'query1' => 'SELECT uid2 FROM friend WHERE uid1 = me()',
+			'query2' => 'SELECT name FROM user WHERE uid IN (SELECT uid2 FROM #query1)',
+		),
+	),
+);
+```
+
+
 
 # Labelling / Grouping
 
