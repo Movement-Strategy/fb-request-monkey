@@ -32,6 +32,5 @@ require_once('../libs/fb_sdk/facebook.php');
 			$i++;
 		}
 		
-		$data = FB_Request_Monkey::sendOne($action, $config);
-		
+		$data = FB_Request_Monkey::sendMany($actions, $config);
 		echo json_encode($data);

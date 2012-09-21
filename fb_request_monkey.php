@@ -241,8 +241,6 @@
 		 * @return array
 		 */
 		public static function addDataFromProcessedResponseToResults($processedResponse, $results) {
-			echo json_encode($processedResponse);
-			
 			$action = $processedResponse['action'];
 			
 			// get the label for the current resposne from the associated action
@@ -421,7 +419,6 @@
 		 * @return array facebook data
 		 */
 		public static function transmit($call) {			
-			echo json_encode($call);
 			$method = $call['method'];
 			$params = $call['params'];
 			$relativeURL = $call['relative_url'];
