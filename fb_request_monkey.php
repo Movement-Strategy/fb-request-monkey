@@ -27,9 +27,9 @@
 		 * @param array $config (default: null) FB PHP SDK config details
 		 * @return array facebook results
 		 */
-		public static function sendOne($action, $config = null) {
+		public static function sendOne($action, $config = null, $options = array()) {
 			$actions = array($action);
-			return self::sendMany($actions, $config);
+			return self::sendMany($actions, $config, $options);
 		}
 				
 		/**
@@ -43,7 +43,8 @@
 		 * @param array $config (default: null) FB PHP SDK config details
 		 * @return array facebook results
 		 */
-		public static function sendMany($actions, $config = null) {
+		public static function sendMany($actions, $config = null, $options = array()) {
+			self::processOptions($options);
 			self::initialize($config);
 			$results = array();
 			$processedResponses = self::getProcessedResponsesFromActions($actions);
