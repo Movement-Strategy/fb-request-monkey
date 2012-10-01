@@ -44,17 +44,17 @@
 		 * @return array facebook results
 		 */
 		public static function sendMany($actions, $config = null, $options = array()) {
-			self::processOptions($options);
+			
+			// set allow errors if its in the options array, if not, set it as false
+			$allowErrors = isset($options['allowErrors']) ? $options['allowErrors'] : false;
 			self::initialize($config);
 			$results = array();
-			$processedResponses = self::getProcessedResponsesFromActions($actions);
+			$processedResponses = self::getProcessedResponsesFromActions($actions, $allowErrors);
 			$results = self::addDataFromProcessedResponsesToResults($processedResponses, $results);
 			$overflowActions = self::getOverflowActions($processedResponses);
-			
 			// if there any overflow actions
 			if(count($overflowActions) > 0) {
 				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions);
-				
 				// because these are overflow requests, the sent result number is inaccurate, so it is set to zero
 				// to correct for the discrepency
 				$overflowProcessedResponses = self::setSentDataCountToZero($overflowProcessedResponses);
@@ -64,7 +64,7 @@
 				// for the number of results
 				$processedResponses = array_merge($processedResponses, $overflowProcessedResponses);
 			}
-			self::checkDataCount($processedResponses);
+			self::checkDataCount($processedResponses, $allowErrors);
 			return $results;
 		}
 				
@@ -76,12 +76,12 @@
 		 * @param array $actions
 		 * @return array
 		 */
-		public static function getProcessedResponsesFromActions($actions) {
+		public static function getProcessedResponsesFromActions($actions, $allowErrors) {
 			$actionCount = count($actions);
 			$callQueue = self::getCallQueue($actions);
 			$formattedCallQueue = self::formatCallQueue($callQueue);
 			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
-			$processedResponses = self::processResponseQueue($responseQueue, $actionCount);
+			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
 			return $processedResponses;
 		}
 		
@@ -124,9 +124,7 @@
 		 */
 		public static function buildOverflowActionsForResponse($processedResponse) {
 			$overflowActions = array();
-			
-			// if this response has more results than could be returned
-			// in the current response
+			// if this response has more results than could be returned and it doesn't have any errors
 			if($processedResponse['hasMoreResults']) {
 				
 				// get the action associated with the response
@@ -185,11 +183,12 @@
 		 * @param array $responseQueue
 		 * @return array
 		 */
-		public static function processResponseQueue($responseQueue, $actionCount) {
+		public static function processResponseQueue($responseQueue, $actionCount, $allowErrors) {
 			$allProcessedResponses = __::chain($responseQueue)
 				
 				// iterate over all returned responses
-				->map(function($response) {
+				->map(function($response) use($allowErrors){
+					
 					// get all of the actions
 					$actions = $response['actions'];
 					
@@ -203,11 +202,11 @@
 						return __::chain($allResponses)
 							
 							// iterate over the responses
-							->map(function($batchResponse) use(&$responseIndex, $actions, $isBatched) {
+							->map(function($batchResponse) use(&$responseIndex, $actions, $isBatched, $allowErrors) {
 								
 								// get the action associated
 								$action = $actions[$responseIndex];
-								$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $isBatched, $action);
+								$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $isBatched, $action, $allowErrors);
 								$responseIndex++;
 								return $processedResponse;
 							})
@@ -216,7 +215,7 @@
 					} else {
 						$action = $actions[0];
 						$response = $response['response'];
-						return FB_Request_Monkey::processSingleResponse($response, $isBatched, $action);
+						return FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors);
 					}
 				})
 			->value();			
@@ -247,13 +246,59 @@
 			// get the label for the current resposne from the associated action
 			$label = isset($action['label']) ? $action['label'] : 'data';
 			
+			if(is_array($label)) {
+				$labels = $label;
+			} else {
+				$labels = array($label);
+			}
+						
 			// get the needed data out of the response
 			$result = $processedResponse['data'];
-			if(!isset($results[$label])) {
-				$results[$label] = array();
+			$updatedResults = self::recursivelyAddLabelsToResults($labels, $result, $results);
+			return $updatedResults;
+		}
+		
+		/**
+		 * recursivelyAddLabelsToResults function.
+		 *
+		 * Recursively add the results for the data into the correct labels
+		 * 
+		 * @access public
+		 * @static
+		 * @param mixed $labels
+		 * @param mixed $resultToAdd
+		 * @param mixed $currentLevel
+		 * @return void
+		 */
+		public static function recursivelyAddLabelsToResults($labels, $resultToAdd, $currentLevel) {
+			
+			// get the current label
+			$currentLabel = array_shift($labels);
+			
+			// if there are any labels left
+			if(count($labels) > 0) {
+				
+				// if the key isn't set, set it with an empty array
+				if(!isset($currentLevel[$currentLabel])) {
+					$currentLevel[$currentLabel] = array();
+				}
+				
+				// since there are more labels, call the function again
+				$currentLevel[$currentLabel] = self::recursivelyAddLabelsToResults($labels, $resultToAdd, $currentLevel[$currentLabel]);
+				return $currentLevel;
+			
+			// this is the last level
+			} else {
+				
+				// if the key isn't set, set it with an empty array
+				if(!isset($currentLevel[$currentLabel])) {
+					$currentLevel[$currentLabel] = array();
+				}
+				
+				// add the results to this level
+				array_push($currentLevel[$currentLabel], $resultToAdd);
+				return $currentLevel;
 			}
-			array_push($results[$label], $result);
-			return $results;
 		}
 		
 		/**
@@ -297,17 +342,21 @@
 		 * @param array $action
 		 * @return array
 		 */
-		public static function processSingleResponse($response, $isBatched, $action) {
+		public static function processSingleResponse($response, $isBatched, $action, $allowErrors) {
 			$processedResponse = array();
 			$processedResponse['action'] = $action;
 			$hasOneItem = false;
 			$returnedDataCount = 0;
+			$hasErrors = false;
+			$hasMoreResults = false;
 			
 			$count = null;
 			$limit = null;
 			
 			if($isBatched) {
-				self::handleBatchErrors($response, $action);
+				
+				// check if there are errors in the response
+				$hasErrors = self::batchResponseHasErrors($response);
 				
 				// the wrapper that data goes in is json_encoded in 
 				// batch responses, but not in single responses
@@ -317,78 +366,107 @@
 				$responseBody = $response;
 			}
 			
+			$processedResponse['hasErrors'] = $hasErrors;
 			
-			// certain types of requests have their data stored in a data key, others don't
-			// this handles this different behavior
-			if(isset($responseBody['data'])) {
-				$data = $responseBody['data'];
+			// if there's an error in the response
+			if($hasErrors) {
+				
+				// if we don't want to throw error
+				if($allowErrors) {
+					$data = $responseBody;
+				} else {
+					self::generateException($response, $action);
+				}
+			
+			// if there aren't any errors
 			} else {
-				$data = $responseBody;
+			
+				// certain types of requests have their data stored in a data key, others don't
+				// this handles this different behavior
+				if(isset($responseBody['data'])) {
+					$data = $responseBody['data'];
+				} else {
+					$data = $responseBody;
+				}
+				
+				// if there's only one item, calling count on the data array will return
+				// an incorrect results, 
+				$processedResponse['hasOneItem'] = $hasOneItem;
+				
+				
+				
+				// if there's a count and limit specified, get them
+				// if not, set them as if there's a single result being returned
+				if(isset($responseBody['count']) && isset($responseBody['limit'])) {
+					$count = $responseBody['count'];
+					$returnedDataCount = count($data);
+					$limit = $responseBody['limit'];
+					$offset = $responseBody['offset'];
+				} else {
+					$count = 1;
+					$returnedDataCount = 1;
+					$limit = 1;
+					$offset = 0;
+				}
+				
+				// if there's a count a limit, 
+				// check if there are more results
+				if($count != null && $limit != null) {
+					$hasMoreResults = $count > $limit;
+				} else {
+					$hasMoreResults = false;
+				}
+				
+				// add the needed variables into the response
+				$processedResponse['pageData'] = array(
+					'offset' => $offset,
+					'count' => $count,
+					'limit' => $limit,
+					'sentDataCount' => $count - $offset,
+					'returnedDataCount' => $returnedDataCount,
+				);
+				
 			}
-			
-			// if there's only one item, calling count on the data array will return
-			// an incorrect results, 
-			$processedResponse['hasOneItem'] = $hasOneItem;
-			
-			$processedResponse['data'] = $data;
-			
-			// if there's a count and limit specified, get them
-			// if not, set them as if there's a single result being returned
-			if(isset($responseBody['count']) && isset($responseBody['limit'])) {
-				$count = $responseBody['count'];
-				$returnedDataCount = count($data);
-				$limit = $responseBody['limit'];
-				$offset = $responseBody['offset'];
-			} else {
-				$count = 1;
-				$returnedDataCount = 1;
-				$limit = 1;
-				$offset = 0;
-			}
-			
-			// if there's a count a limit, 
-			// check if there are more results
-			if($count != null && $limit != null) {
-				$hasMoreResults = $count > $limit;
-			} else {
-				$hasMoreResults = false;
-			}
-			
-			// add the needed variables into the response
 			$processedResponse['hasMoreResults'] = $hasMoreResults;
-			$processedResponse['pageData'] = array(
-				'offset' => $offset,
-				'count' => $count,
-				'limit' => $limit,
-				'sentDataCount' => $count - $offset,
-				'returnedDataCount' => $returnedDataCount,
-			);
+			$processedResponse['data'] = $data;
 			return $processedResponse;
 		} 
 		
 		/**
-		 * handleBatchErrors function.
+		 * batchResponseHasErrors function.
 		 *
-		 * The FB PHP SDK doesn't throw errors on exceptions that occur in batch
-		 * requests, this throws these exceptions in a more understandable way
+		 * Check if their are error is the batch response
+		 *
+		 * @access public
+		 * @static
+		 * @param array $response
+		 * @return void
+		 */
+		public static function batchResponseHasErrors($response) {
+			$code = $response['code'];
+			$responseBody = json_decode($response['body'], true);
+			return $code != 200;
+		}
+		
+		/**
+		 * generateException function.
+		 * 
+		 * Turn a batch result that contains an error into an exception
 		 * 
 		 * @access public
 		 * @static
-		 * @param mixed $response
-		 * @param mixed $action
+		 * @param array $response
+		 * @param array $action
 		 * @return void
 		 */
-		public static function handleBatchErrors($response, $action) {
-			$code = $response['code'];
-			if($code != 200) {
-				$output = json_encode($action);
-				$responseBody = json_decode($response['body'], true);
-				
-				// make sure theres actually a message set
-				$messagePiece = isset($responseBody['error']['message']) ? $responseBody['error']['message'] : "Facebook API $code error";
-				$message = "$messagePiece in the following action: $output";
-				throw new Exception($message); 
-			}
+		public static function generateException($response, $action) {
+			$output = json_encode($action);
+			$responseBody = json_decode($response['body'], true);
+			
+			// make sure theres actually a message set
+			$messagePiece = isset($responseBody['error']['message']) ? $responseBody['error']['message'] : "Facebook API $code error";
+			$message = "$messagePiece in the following action: $output";
+			throw new Exception($message); 
 		}
 				
 		/**
@@ -474,15 +552,17 @@
 		 * @param mixed $processedResponses
 		 * @return void
 		 */
-		public static function checkDataCount($processedResponses) {
-			$reducedCounts = self::getReducedCounts($processedResponses);
-			$totalSent = $reducedCounts['total_sent'];
-			$totalReturned = $reducedCounts['total_returned'];
-			if($totalSent != $totalReturned) {
-				$problemAmount = abs($totalSent - $totalReturned);
-				$messagePiece = $totalSent > $totalReturned ? 'results missing' : 'extra results being returned';
-				$message = "Result Count Error: There are $problemAmount $messagePiece.";
-				throw new Exception($message);
+		public static function checkDataCount($processedResponses, $allowErrors) {
+			if(!$allowErrors) {
+				$reducedCounts = self::getReducedCounts($processedResponses);
+				$totalSent = $reducedCounts['total_sent'];
+				$totalReturned = $reducedCounts['total_returned'];
+				if($totalSent != $totalReturned) {
+					$problemAmount = abs($totalSent - $totalReturned);
+					$messagePiece = $totalSent > $totalReturned ? 'results missing' : 'extra results being returned';
+					$message = "Result Count Error: There are $problemAmount $messagePiece.";
+					throw new Exception($message);
+				}
 			}
 		}
 		
