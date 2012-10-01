@@ -106,7 +106,7 @@ $action = array(
 
 
 
-# Labelling / Grouping
+## Labelling / Grouping
 
 If you want the data that's returned to be grouped, add a label parameter to the action.
 
@@ -133,7 +133,7 @@ $actions = array(
 );
 $results = FB_Request_Monkey::sendMany($actions);
 ```
-### Labelled Results
+This would return
 
 ```php		
 $labelledResults = array(
@@ -145,3 +145,117 @@ $labelledResults = array(
 	),
 );
 ```
+
+### Applying multiple labels
+
+If you'd like more than one label to be applied to each action, add an array of labels, going from outside to inside, and the labels
+will be applied accordingly.  
+
+```php
+$actions = array(
+	array(
+		'query' => '1000/friends',
+		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
+		'params' => array(
+			'param1' => 'test',
+		),
+		'label' => array(1000, 'friend_query');
+	),
+	array(
+		'query' => 'me',
+		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
+		'params' => array(
+			'param1' => 'test',
+		),
+		'label' => array(1000, 'overall_query');
+	),
+	array(
+		'query' => '2000/friends',
+		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
+		'params' => array(
+			'param1' => 'test',
+		),
+		'label' => array(2000, 'friend_query');
+	),
+	array(
+		'query' => '2000',
+		'method' => 'GET',
+		'token' => 'ADLFKJSDFS97823987'
+		'params' => array(
+			'param1' => 'test',
+		),
+		'label' => array(2000, 'overall_query');
+	),
+);
+$results = FB_Request_Monkey::sendMany($actions);
+```
+Would result in
+
+```php		
+$labelledResults = array(
+	1000 => array(
+		'friend_query' => array(
+			//results
+		),
+		'overall_query' => array(
+			//results
+		),
+	),
+	2000 => array(
+		'friend_query' => array(
+			//results
+		),
+		'overall_query' => array(
+			//results
+		),
+	),
+);
+```
+
+## Error Handling
+
+If there's an error in a single batch request, the default behavior is to throw an exception at the point and halt the program.  At times, this may not be the desired behvaior.  If you'd like to have errors be returned rather than generate exceptions, pass in $allowErrors in the options array.  Note: There is default result counting functionality to confirm that all results that go out, come back.  If you allowErrors, you are disabling result counting as well. 
+
+```php
+$options = array(
+	'allowErrors' => true,
+);
+
+$actions = array(
+	array(
+		'query' => 'wrongQuery',
+		'token' => ADLFKJSDFS97823987,
+		'method' => 'GET',
+	),
+	array(
+		'query' => 'me'
+		'token' => ADLFKJSDFS97823987,
+		'method' => 'GET',
+	),
+);
+
+$results = FB_Request_Monkey::sendMany($actions, $config, $options);
+```
+
+This would result in
+
+```php
+$results = array(
+	'data' => array(
+		array(
+			'error' => array(
+				'message' => "(#803) Some of the aliases you requested do not exist: wrongQuery",
+				'type' => "OAuthException",
+				'code' => 803,
+			),
+		),
+		array(
+			// good results from 'me' action
+		),
+	),
+);
+```
+
