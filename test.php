@@ -17,10 +17,15 @@ require_once('../libs/fb_sdk/facebook.php');
 		);
 		
 		$action = array(
-			'method' => 'GET',
-/* 			'name' => 'test', */
-			'query' => 'me',
-			'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
+			array(
+				'method' => 'GET',
+				'name' => 'get_friends',
+				'query' => 'me/friends',
+				'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
+				'params' => array(
+					'limit' => 5,
+				),
+			),	
 		);
 		
 		$actions = array();
@@ -32,5 +37,5 @@ require_once('../libs/fb_sdk/facebook.php');
 			$i++;
 		}
 		
-		$data = FB_Request_Monkey::sendMany($actions, $config);
+		$data = FB_Request_Monkey::sendMany($action, $config);
 		echo json_encode($data);
