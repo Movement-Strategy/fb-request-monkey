@@ -31,7 +31,7 @@ require_once('../libs/fb_sdk/facebook.php');
 			$label1 = $i % 2 == 0 ? 'query1' : 'query2';
 			$label2 = $i + 1000;
 			$actionToAdd = $action;
-			$actionToAdd['label'] = array($label1, $label2);
+			$actionToAdd['label'] = array($label2, $label1);
 			array_push($actions, $actionToAdd);
 			$i++;
 		}
@@ -39,7 +39,6 @@ require_once('../libs/fb_sdk/facebook.php');
 			'allowErrors' => true,
 		);
 
-		
 		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
 		echo json_encode($data);
 
