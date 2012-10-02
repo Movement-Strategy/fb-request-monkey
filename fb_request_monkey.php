@@ -41,20 +41,26 @@
 		 * @static
 		 * @param array $actions an array of action arrays
 		 * @param array $config (default: null) FB PHP SDK config details
+		 * @param array $options (default: array)
 		 * @return array facebook results
 		 */
 		public static function sendMany($actions, $config = null, $options = array()) {
 			
 			// set allow errors if its in the options array, if not, set it as false
 			$allowErrors = isset($options['allowErrors']) ? $options['allowErrors'] : false;
+			
+			// an access token that has been confirmed to be valid to ensure that a batch request will go out
+			$failsafeToken = isset($options['failsafeToken']) ? $options['failsafeToken'] : null;
 			self::initialize($config);
 			$results = array();
-			$processedResponses = self::getProcessedResponsesFromActions($actions, $allowErrors);
+			$processedResponses = self::getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken);
 			$results = self::addDataFromProcessedResponsesToResults($processedResponses, $results);
 			$overflowActions = self::getOverflowActions($processedResponses);
+			
 			// if there any overflow actions
 			if(count($overflowActions) > 0) {
 				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions);
+				
 				// because these are overflow requests, the sent result number is inaccurate, so it is set to zero
 				// to correct for the discrepency
 				$overflowProcessedResponses = self::setSentDataCountToZero($overflowProcessedResponses);
@@ -76,10 +82,10 @@
 		 * @param array $actions
 		 * @return array
 		 */
-		public static function getProcessedResponsesFromActions($actions, $allowErrors) {
+		public static function getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken) {
 			$actionCount = count($actions);
 			$callQueue = self::getCallQueue($actions);
-			$formattedCallQueue = self::formatCallQueue($callQueue);
+			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
 			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
 			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
 			return $processedResponses;
@@ -697,13 +703,13 @@
 		 * @param array $callQueue
 		 * @return array
 		 */
-		public static function formatCallQueue($callQueue) {
+		public static function formatCallQueue($callQueue, $failsafeToken) {
 			
 			return __::map($callQueue, function($call) {
 				
 				// if there are more than one actions in the call
 				if(count($call) > 1) {
-					return FB_Request_Monkey::formatMultiActionCall($call);
+					return FB_Request_Monkey::formatMultiActionCall($call, $failsafeToken);
 				} else {
 					return FB_Request_Monkey::formatSingleActionCall($call);
 				}
@@ -751,11 +757,11 @@
 		 * @param array $call
 		 * @return array
 		 */
-		public static function formatMultiActionCall($call) {
+		public static function formatMultiActionCall($call, $failsafeToken) {
 			return array(
 				'method' => 'POST',
 				'relative_url' => '',
-				'params' => self::getBatchParams($call),
+				'params' => self::getBatchParams($call, $failsafeToken),
 				'actions' => $call,
 			);
 		}
@@ -791,8 +797,15 @@
 		 * @param array $call
 		 * @return array
 		 */
-		public static function getBatchParams($call) {
-			$backupToken = null;
+		public static function getBatchParams($call, $failsafeToken) {
+			
+			// if no failsafe token is provided, 
+			if($failsafeToken === null) {
+				
+				// use the token from the first action in the call
+				$failsafeToken = $call[0]['access_token'];
+			}
+			
 			$preparedActions = __::map($call, function($action) use(&$backupToken){
 				$batchItem = array();
 				$name = isset($action['name']) ? $action['name'] : null;
@@ -800,7 +813,6 @@
 				$method = $action['method'];
 				$relativeURL = $action['relative_url'];
 				$relativeURL = FB_Request_Monkey::addParamsToRelativeURL($relativeURL, $params);
-				$backupToken = $action['access_token'];
 				$preparedAction = array(
 					'method' => $method,
 					'relative_url' => FB_Request_Monkey::formatRelativeURL($relativeURL),
@@ -811,7 +823,7 @@
 				return $preparedAction;
 			});
 			$batchParams = array(
-				'batch' => $preparedActions,
+				'batch' => $failsafeToken,
 				'access_token' => $backupToken,
 			);
 			return $batchParams;
