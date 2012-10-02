@@ -803,12 +803,14 @@
 		 */
 		public static function getBatchParams($call, $failsafeToken) {
 			
+/*
 			// if no failsafe token is provided, 
 			if($failsafeToken === null) {
 				
 				// use the token from the first action in the call
 				$failsafeToken = $call[0]['access_token'];
 			}
+*/
 			
 			$preparedActions = __::map($call, function($action) use(&$backupToken){
 				$batchItem = array();
@@ -826,10 +828,14 @@
 				}
 				return $preparedAction;
 			});
+			
 			$batchParams = array(
 				'batch' => $preparedActions,
-				'access_token' => $failsafeToken,
 			);
+			
+			if($failsafeToken != null) {
+				$batchParams['access_token'] = $failsafeToken;
+			}
 			return $batchParams;
 		}	
 		
