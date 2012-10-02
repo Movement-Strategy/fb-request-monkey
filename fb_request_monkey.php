@@ -187,6 +187,7 @@
 		 * @access public
 		 * @static
 		 * @param array $responseQueue
+		 * @param array $allowErrors
 		 * @return array
 		 */
 		public static function processResponseQueue($responseQueue, $actionCount, $allowErrors) {
@@ -289,7 +290,7 @@
 					$currentLevel[$currentLabel] = array();
 				}
 				
-				// since there are more labels, call the function again
+				// because there are more labels, call the function again
 				$currentLevel[$currentLabel] = self::recursivelyAddLabelsToResults($labels, $resultToAdd, $currentLevel[$currentLabel]);
 				return $currentLevel;
 			
@@ -701,6 +702,7 @@
 		 * @access public
 		 * @static
 		 * @param array $callQueue
+		 * @param string $failsafeToken
 		 * @return array
 		 */
 		public static function formatCallQueue($callQueue, $failsafeToken) {
@@ -755,6 +757,7 @@
 		 * @access public
 		 * @static
 		 * @param array $call
+		 * @param string $failsafeToken
 		 * @return array
 		 */
 		public static function formatMultiActionCall($call, $failsafeToken) {
@@ -795,6 +798,7 @@
 		 * @access public
 		 * @static
 		 * @param array $call
+		 * @param string $failsafeToken
 		 * @return array
 		 */
 		public static function getBatchParams($call, $failsafeToken) {
