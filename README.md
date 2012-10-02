@@ -261,13 +261,3 @@ $results = array(
 );
 ```
 
-## Providing a Valid Access Token
-
-To send a batch facebook request it is necessary to provide a failsafe access token. This is the access token that allows the batch request to be sent in the first, then Facebook goes about validating the individual tokens supplied in the batch.  By default, the request monkey selects the first access token from the first action in a call as the failsafe.  In certain situations, where the validitiy of that first token is in question, it become advantageous to be able to provide a failsafe token of your own that you know will be valid(to ensure that batch request will go out).  To do, supply a failsafeToken key in the options array. 
-
-```php
-$options = array(
-	'failsafeToken' => '110000303020assa',
-);
-```
-
