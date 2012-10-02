@@ -18,7 +18,7 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 		$action = array(
 			'method' => 'GET',
-			'query' => 'mo/friends',
+			'query' => 'act_1123834783',
 			'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
 			'params' => array(
 				'limit' => 5,
@@ -38,6 +38,8 @@ require_once('../libs/fb_sdk/facebook.php');
 		$options = array(
 			'allowErrors' => true,
 		);
+		
+	
 
 		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
 		echo json_encode($data);

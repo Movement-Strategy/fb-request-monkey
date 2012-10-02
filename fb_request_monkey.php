@@ -705,7 +705,7 @@
 		 */
 		public static function formatCallQueue($callQueue, $failsafeToken) {
 			
-			return __::map($callQueue, function($call) {
+			return __::map($callQueue, function($call) use($failsafeToken){
 				
 				// if there are more than one actions in the call
 				if(count($call) > 1) {
@@ -823,8 +823,8 @@
 				return $preparedAction;
 			});
 			$batchParams = array(
-				'batch' => $failsafeToken,
-				'access_token' => $backupToken,
+				'batch' => $preparedActions,
+				'access_token' => $failsafeToken,
 			);
 			return $batchParams;
 		}	

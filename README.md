@@ -215,7 +215,9 @@ $labelledResults = array(
 );
 ```
 
-## Error Handling
+# Optional Parameters 
+
+## Returning Errors
 
 If there's an error in a single batch request, the default behavior is to throw an exception at the point and halt the program.  At times, this may not be the desired behvaior.  If you'd like to have errors be returned rather than generate exceptions, pass in $allowErrors in the options array.  Note: There is default result counting functionality to confirm that all results that go out, come back.  If you allowErrors, you are disabling result counting as well. 
 
@@ -256,6 +258,16 @@ $results = array(
 			// good results from 'me' action
 		),
 	),
+);
+```
+
+## Providing a Valid Access Token
+
+To send a batch facebook request it is necessary to provide a failsafe access token. This is the access token that allows the batch request to be sent in the first, then Facebook goes about validating the individual tokens supplied in the batch.  By default, the request monkey selects the first access token from the first action in a call as the failsafe.  In certain situations, where the validitiy of that first token is in question, it become advantageous to be able to provide a failsafe token of your own that you know will be valid(to ensure that batch request will go out).  To do, supply a failsafeToken key in the options array. 
+
+```php
+$options = array(
+	'failsafeToken' => '110000303020assa',
 );
 ```
 
