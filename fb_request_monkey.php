@@ -48,11 +48,12 @@
 			
 			// set allow errors if its in the options array, if not, set it as false
 			$allowErrors = isset($options['allowErrors']) ? $options['allowErrors'] : false;
+			$failsafeToken = isset($options['failsafeToken']) ? $options['failsafeToken'] : null;
 			
 			// an access token that has been confirmed to be valid to ensure that a batch request will go out
 			self::initialize($config);
 			$results = array();
-			$processedResponses = self::getProcessedResponsesFromActions($actions, $allowErrors);
+			$processedResponses = self::getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken);
 			$results = self::addDataFromProcessedResponsesToResults($processedResponses, $results);
 			$overflowActions = self::getOverflowActions($processedResponses);
 			
@@ -81,10 +82,10 @@
 		 * @param array $actions
 		 * @return array
 		 */
-		public static function getProcessedResponsesFromActions($actions, $allowErrors) {
+		public static function getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken) {
 			$actionCount = count($actions);
 			$callQueue = self::getCallQueue($actions);
-			$formattedCallQueue = self::formatCallQueue($callQueue);
+			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
 			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
 			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
 			return $processedResponses;
@@ -705,13 +706,13 @@
 		 * @param string $failsafeToken
 		 * @return array
 		 */
-		public static function formatCallQueue($callQueue) {
+		public static function formatCallQueue($callQueue, $failsafeToken) {
 			
-			return __::map($callQueue, function($call){
+			return __::map($callQueue, function($call) use($failsafeToken){
 				
 				// if there are more than one actions in the call
 				if(count($call) > 1) {
-					return FB_Request_Monkey::formatMultiActionCall($call);
+					return FB_Request_Monkey::formatMultiActionCall($call, $failsafeToken);
 				} else {
 					return FB_Request_Monkey::formatSingleActionCall($call);
 				}
@@ -760,11 +761,11 @@
 		 * @param string $failsafeToken
 		 * @return array
 		 */
-		public static function formatMultiActionCall($call) {
+		public static function formatMultiActionCall($call, $failsafeToken) {
 			return array(
 				'method' => 'POST',
 				'relative_url' => '',
-				'params' => self::getBatchParams($call),
+				'params' => self::getBatchParams($call, $failsafeToken),
 				'actions' => $call,
 			);
 		}
@@ -801,7 +802,7 @@
 		 * @param string $failsafeToken
 		 * @return array
 		 */
-		public static function getBatchParams($call) {
+		public static function getBatchParams($call, $failsafeToken) {
 			
 			$preparedActions = __::map($call, function($action) use(&$backupToken){
 				$batchItem = array();
@@ -822,7 +823,10 @@
 			
 			$batchParams = array(
 				'batch' => $preparedActions,
-			);			
+			);	
+			if($failsafeToken != null) {
+				$batchParams['access_token'] = $failsafeToken;
+			}		
 			return $batchParams;
 		}	
 		
