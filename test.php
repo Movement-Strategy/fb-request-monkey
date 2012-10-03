@@ -18,10 +18,10 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 		$action = array(
 			'method' => 'GET',
-			'query' => 'mo/friends',
+			'query' => '/me/friends',
 			'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
 			'params' => array(
-				'limit' => 5,
+				'limit' => 10,
 			),
 		);
 		
@@ -34,12 +34,9 @@ require_once('../libs/fb_sdk/facebook.php');
 			$actionToAdd['label'] = array($label2, $label1);
 			array_push($actions, $actionToAdd);
 			$i++;
-		}
-		$options = array(
-			'allowErrors' => true,
-		);
+		}	
 
-		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
+		$data = FB_Request_Monkey::sendOne($action, $config);
 		echo json_encode($data);
 
 

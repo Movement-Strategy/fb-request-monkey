@@ -215,7 +215,9 @@ $labelledResults = array(
 );
 ```
 
-## Error Handling
+# Optional Parameters 
+
+## Returning Errors
 
 If there's an error in a single batch request, the default behavior is to throw an exception at the point and halt the program.  At times, this may not be the desired behvaior.  If you'd like to have errors be returned rather than generate exceptions, pass in $allowErrors in the options array.  Note: There is default result counting functionality to confirm that all results that go out, come back.  If you allowErrors, you are disabling result counting as well. 
 
