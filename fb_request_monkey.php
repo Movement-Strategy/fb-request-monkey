@@ -58,7 +58,7 @@
 			
 			// if there any overflow actions
 			if(count($overflowActions) > 0) {
-				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions);
+				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions, $allowErrors);
 				
 				// because these are overflow requests, the sent result number is inaccurate, so it is set to zero
 				// to correct for the discrepency
@@ -378,7 +378,7 @@
 			if($hasErrors) {
 				
 				// if we don't want to throw error
-				if($allowErrors) {
+				if($allowErrors == true) {
 					$data = $responseBody;
 				} else {
 					self::generateException($response, $action);
@@ -467,6 +467,7 @@
 		 */
 		public static function generateException($response, $action) {
 			$output = json_encode($action);
+			$code = $response['code'];
 			$responseBody = json_decode($response['body'], true);
 			
 			// make sure theres actually a message set
