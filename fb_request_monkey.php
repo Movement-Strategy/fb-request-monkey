@@ -758,17 +758,17 @@
 			// unset the access token outside of the params
 			unset($formattedCall['access_token']);
 			
+			$params = FB_Request_Monkey::handleBoundaryQueriesInParams($formattedCall['relative_url'], $params);
+			
 			// get and format the relative URL
 			$formattedCall['relative_url'] = FB_Request_Monkey::formatRelativeURL($formattedCall['relative_url']);
-		
+			
 			// reset the params	
 			$formattedCall['params'] = $params;
 			$formattedCall['actions'] = $call;
-			
 			return $formattedCall;
-			
 		}
-	
+			
 		/**
 		 * formatMultiActionCall function.
 		 * 
@@ -866,10 +866,10 @@
 		 */
 		public static function handleBoundaryQueriesInParams($relativeURL, $params) {
 			$boundaryQueryMap = array(
-				'debug_token' => function($relativeURL, $params) {
+				'debug_token' => function($relativeURL, $params){
 					unset($params['access_token']);
 					return $params;
-				}
+				},
 			);
 			
 			if(isset($boundaryQueryMap[$relativeURL])) {

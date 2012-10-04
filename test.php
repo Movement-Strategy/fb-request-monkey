@@ -40,7 +40,7 @@ require_once('../libs/fb_sdk/facebook.php');
 		$actions = __::map($users, function($user) {
 			return array(
 				'token' => $user['token'],
-				'query' => 'me',
+				'query' => 'debug_token',
 				'method' => 'GET',
 				'label' => $user['id'],
 				'params' => array(
@@ -67,7 +67,7 @@ require_once('../libs/fb_sdk/facebook.php');
 			'allowErrors' => true,
 		);
 		
-		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
+		$data = FB_Request_Monkey::sendOne($actions[1], $config, $options);
 		echo json_encode($data);
 
 
