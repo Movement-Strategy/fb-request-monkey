@@ -825,7 +825,6 @@
 			if($failsafeToken !== null) {
 				$batchParams['access_token'] = $failsafeToken;
 			}
-			echo json_encode($batchParams);
 			
 			return $batchParams;
 		}	
