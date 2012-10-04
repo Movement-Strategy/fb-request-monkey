@@ -279,7 +279,6 @@
 			
 			// get the current label
 			$currentLabel = array_shift($labels);
-			
 			// if there are any labels left
 			if(count($labels) > 0) {
 				
