@@ -36,7 +36,7 @@ require_once('../libs/fb_sdk/facebook.php');
 			'cookie' => false,
 		);
 		
-		$actions = __::map($users, $user) {
+		$actions = __::map($users, function($user) {
 			return array(
 				'token' => $user['token'],
 				'query' => $user['id'],
@@ -47,7 +47,7 @@ require_once('../libs/fb_sdk/facebook.php');
 					),
 				),
 			);
-		}f
+		});
 				
 /*
 		$actions = array();
@@ -64,10 +64,11 @@ require_once('../libs/fb_sdk/facebook.php');
 
 
 		$options = array(
-			'failsafeToken' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
+/* 			'failsafeToken' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD', */
+/* 			'allowErrors' => true, */
 		);
 
-		$data = FB_Request_Monkey::sendMany($actions, $config);
+		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
 		echo json_encode($data);
 
 

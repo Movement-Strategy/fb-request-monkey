@@ -804,9 +804,12 @@
 			$preparedActions = __::map($call, function($action) use(&$backupToken){
 				$batchItem = array();
 				$name = isset($action['name']) ? $action['name'] : null;
-				$params = isset($action['params']) ? $action['params'] : null;
+				$params = isset($action['params']) ? $action['params'] : array();
 				$method = $action['method'];
 				$relativeURL = $action['relative_url'];
+				
+				// add the access token to the params
+				$params['access_token'] = $action['access_token']
 				$relativeURL = FB_Request_Monkey::addParamsToRelativeURL($relativeURL, $params);
 				$preparedAction = array(
 					'method' => $method,
@@ -840,12 +843,10 @@
 		 * @param array $params (default: null)
 		 * @return string
 		 */
-		public static function addParamsToRelativeURL($relativeURL, $params = null) {
-			if($params != null) {
+		public static function addNeededDataToRelativeURL($relativeURL, $params, $access_token) {
 				$encodedParams = self::jsonEncodeNonStringValues($params);
 				$convertedParams = self::convertParamsToURL($encodedParams);
 				$relativeURL .= $convertedParams;
-			}
 			return $relativeURL;
 		}
 				
