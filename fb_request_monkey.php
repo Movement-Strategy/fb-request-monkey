@@ -325,6 +325,11 @@
 			}
 		}
 		
+		
+		public static function blankFunction() {
+			// testing reverts
+		}
+		
 		/**
 		 * sendAllCalls function.
 		 *
@@ -865,6 +870,9 @@
 		 * @return void
 		 */
 		public static function handleBoundaryQueriesInParams($relativeURL, $params) {
+			
+			// map the boundary queries to the function to 
+			// solve the problems they cause
 			$boundaryQueryMap = array(
 				'debug_token' => function($relativeURL, $params){
 					unset($params['access_token']);
@@ -872,6 +880,7 @@
 				},
 			);
 			
+			// call the function if its set in the boundary condition map
 			if(isset($boundaryQueryMap[$relativeURL])) {
 				$params = $boundaryQueryMap[$relativeURL]($relativeURL, $params); 
 			}
