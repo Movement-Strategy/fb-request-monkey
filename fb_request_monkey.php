@@ -45,9 +45,12 @@
 		 * @return array facebook results
 		 */
 		public static function sendMany($actions, $config = null, $options = array()) {
+			self::validateActions($actions, $options);
+			
 			// set allow errors if its in the options array, if not, set it as false
 			$allowErrors = isset($options['allowErrors']) ? $options['allowErrors'] : false;
 			$failsafeToken = isset($options['failsafeToken']) ? $options['failsafeToken'] : null;
+			
 			// an access token that has been confirmed to be valid to ensure that a batch request will go out
 			self::initialize($config);
 			$results = array();
@@ -70,6 +73,23 @@
 			}
 			self::checkDataCount($processedResponses, $allowErrors);
 			return $results;
+		}
+		
+		/**
+		 * validateActions function.
+		 * 
+		 * @access public
+		 * @static
+		 * @param mixed $actions
+		 * @param mixed $options
+		 * @return void
+		 */
+		public static function validateActions($actions, $options) {
+			__::each($actions, function($action) use($options){
+				if(isset($options['failsafeToken']) && $action['query'] == 'debug_token') {
+					throw new Exception("The Facebook API doesn't allow failsafe tokens on debug_token queries, please remove the failsafe token before continuing");
+				}
+			});
 		}
 				
 		/**
@@ -787,6 +807,7 @@
 			}
 		}
 		
+		
 		/**
 		 * getBatchParams function.
 		 * 
@@ -801,7 +822,7 @@
 		 */
 		public static function getBatchParams($call, $failsafeToken) {
 			
-			$preparedActions = __::map($call, function($action) use(&$backupToken){
+			$preparedActions = __::map($call, function($action) use($failsafeToken){
 				$batchItem = array();
 				$name = isset($action['name']) ? $action['name'] : null;
 				$params = isset($action['params']) ? $action['params'] : array();
@@ -809,7 +830,8 @@
 				$relativeURL = $action['relative_url'];
 				
 				// add the access token to the params
-				$params['access_token'] = $action['access_token']
+				$params['access_token'] = $action['access_token'];
+				$params = FB_Request_Monkey::handleBoundaryQueriesInParams($relativeURL, $params);
 				$relativeURL = FB_Request_Monkey::addParamsToRelativeURL($relativeURL, $params);
 				$preparedAction = array(
 					'method' => $method,
@@ -824,12 +846,37 @@
 			$batchParams = array(
 				'batch' => $preparedActions,
 			);	
+			
 			if($failsafeToken !== null) {
 				$batchParams['access_token'] = $failsafeToken;
 			}
-			
+
 			return $batchParams;
-		}	
+		}
+		
+		/**
+		 * handleBoundaryQueries function.
+		 *
+		 * Certain FB queries have erratic behavior that needs to be handled
+		 * in different ways, the processing for handling them happens here
+		 * 
+		 * @access public
+		 * @static
+		 * @return void
+		 */
+		public static function handleBoundaryQueriesInParams($relativeURL, $params) {
+			$boundaryQueryMap = array(
+				'debug_token' => function($relativeURL, $params) {
+					unset($params['access_token']);
+					return $params;
+				}
+			);
+			
+			if(isset($boundaryQueryMap[$relativeURL])) {
+				$params = $boundaryQueryMap[$relativeURL]($relativeURL, $params); 
+			}
+			return $params;
+		}
 		
 		/**
 		 * addParamsToRelativeURL function.
@@ -843,10 +890,12 @@
 		 * @param array $params (default: null)
 		 * @return string
 		 */
-		public static function addNeededDataToRelativeURL($relativeURL, $params, $access_token) {
+		public static function addParamsToRelativeURL($relativeURL, $params) {
+			if(count($params) > 0) {
 				$encodedParams = self::jsonEncodeNonStringValues($params);
 				$convertedParams = self::convertParamsToURL($encodedParams);
 				$relativeURL .= $convertedParams;
+			}
 			return $relativeURL;
 		}
 				
