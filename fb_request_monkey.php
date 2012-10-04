@@ -45,11 +45,9 @@
 		 * @return array facebook results
 		 */
 		public static function sendMany($actions, $config = null, $options = array()) {
-			
 			// set allow errors if its in the options array, if not, set it as false
 			$allowErrors = isset($options['allowErrors']) ? $options['allowErrors'] : false;
 			$failsafeToken = isset($options['failsafeToken']) ? $options['failsafeToken'] : null;
-			
 			// an access token that has been confirmed to be valid to ensure that a batch request will go out
 			self::initialize($config);
 			$results = array();
@@ -824,9 +822,11 @@
 			$batchParams = array(
 				'batch' => $preparedActions,
 			);	
-			if($failsafeToken != null) {
+			if($failsafeToken !== null) {
 				$batchParams['access_token'] = $failsafeToken;
-			}		
+			}
+			echo json_encode($batchParams);
+			
 			return $batchParams;
 		}	
 		
