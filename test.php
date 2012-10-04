@@ -9,6 +9,26 @@ require_once('../libs/fb_sdk/facebook.php');
 
 
 			
+	$users = array(
+		
+		// invalid
+		array(
+			'token' => 'AAADNISLEU9oBACz88GSSSlx34sMzyXiVTSfQ5kMAWS33wHsMcjkkM9LzC8VUtYz4DZCjQgYkAvdaWwKPgISFgJtOhYCEam1IRm2wtZCeLflvtLvr41',
+			'id' => 1046940381,
+		),
+		
+		// valid
+		array(
+			'token' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
+			'id' => 678234993,
+		),
+		
+		// valid
+		array(
+			'token' => 'AAADNISLEU9oBAAwOW8Jpt5RZCPlwOKeYEnjpwCsLh31CYE53cSoy6jvJpxwW6ExJWKqbH460yTfSpEXdEssAZAEmPWPSLCqZBdDSc6iKgZDZD',
+			'id' => 1762732006,
+		),
+	);	
 		
 		$config = array(
 			'appId' => 103973243026241,
@@ -16,15 +36,20 @@ require_once('../libs/fb_sdk/facebook.php');
 			'cookie' => false,
 		);
 		
-		$action = array(
-			'method' => 'GET',
-			'query' => '/me/friends',
-			'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
-			'params' => array(
-				'limit' => 10,
-			),
-		);
-		
+		$actions = __::map($users, $user) {
+			return array(
+				'token' => $user['token'],
+				'query' => $user['id'],
+				'method' => 'GET',
+				'params' => array(
+					'fields' => array(
+						'birthday',
+					),
+				),
+			);
+		}
+				
+/*
 		$actions = array();
 		$i = 1;
 		while ($i <= 4) {
@@ -35,8 +60,12 @@ require_once('../libs/fb_sdk/facebook.php');
 			array_push($actions, $actionToAdd);
 			$i++;
 		}	
+*/
 
-		$data = FB_Request_Monkey::sendOne($action, $config);
+
+		
+
+		$data = FB_Request_Monkey::sendMany($actions, $config);
 		echo json_encode($data);
 
 
