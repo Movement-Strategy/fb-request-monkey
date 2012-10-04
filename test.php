@@ -47,7 +47,7 @@ require_once('../libs/fb_sdk/facebook.php');
 					),
 				),
 			);
-		}
+		}f
 				
 /*
 		$actions = array();
@@ -63,7 +63,9 @@ require_once('../libs/fb_sdk/facebook.php');
 */
 
 
-		
+		$options = array(
+			'failsafeToken' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
+		);
 
 		$data = FB_Request_Monkey::sendMany($actions, $config);
 		echo json_encode($data);
