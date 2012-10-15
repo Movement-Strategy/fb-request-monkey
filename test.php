@@ -49,7 +49,6 @@ require_once('../libs/fb_sdk/facebook.php');
 			);
 		});
 				
-/*
 		$actions = array();
 		$i = 1;
 		while ($i <= 4) {
@@ -60,7 +59,6 @@ require_once('../libs/fb_sdk/facebook.php');
 			array_push($actions, $actionToAdd);
 			$i++;
 		}	
-*/
 
 
 		$options = array(
