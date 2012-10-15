@@ -241,14 +241,15 @@
 					} else {
 						$action = $actions[0];
 						$response = $response['response'];
-						return FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors);
+						
+						// return the single response so they who structure can always be flattened
+						return array(FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors));
 					}
 				})
-			->value();			
+			->flatten(true)
+			->value();
 			// if there are multiple responses, flatten them into a single array
-			if($actionCount != 1) {
-				$allProcessedResponses = __::flatten($allProcessedResponses, true);
-			}
+			
 			return $allProcessedResponses;
 		}
 		
