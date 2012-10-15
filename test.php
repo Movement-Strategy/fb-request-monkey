@@ -55,7 +55,7 @@ require_once('../libs/fb_sdk/facebook.php');
 			
 			$connectionAction = array(
 				'token' => $user['token'],
-				'query' => 'me/likes',
+				'query' => 'me/friends',
 				'method' => 'GET',
 				'label' => array($user['id'], 'likes'),
 			);
@@ -80,10 +80,11 @@ require_once('../libs/fb_sdk/facebook.php');
 /* 			'allowErrors' => true, */
 		);
 		
-		$actions = buildActions(1, 1);
+		$actions = buildActions(100, 1);
 		
 		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
-		echo json_encode($data);
+		$test = FB_Request_Monkey::$testArray;
+		echo json_encode($test);
 
 
 	
