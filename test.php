@@ -8,10 +8,6 @@ require_once('../libs/underscore/underscore.php');
 require_once('../libs/fb_sdk/facebook.php');
 
 
-	$user = array(
-		'token' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
-		'id' => 678234993,
-	);
 		
 	$users = array(
 		// invalid
@@ -44,14 +40,18 @@ require_once('../libs/fb_sdk/facebook.php');
 				
 		
 		function buildActions($userCount, $connectionCount) {
+			$user = array(
+				'token' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
+				'id' => 678234993,
+			);
 			$actions = array();
 			$i = 1;
-			$userAction =  array(
+			$userAction = array(
 				'token' => $user['token'],
 				'query' => 'me',
 				'method' => 'GET',
 				'label' => array($user['id'], 'core'),
-			});
+			);
 			
 			$connectionAction = array(
 				'token' => $user['token'],
@@ -80,7 +80,9 @@ require_once('../libs/fb_sdk/facebook.php');
 /* 			'allowErrors' => true, */
 		);
 		
-		$data = FB_Request_Monkey::sendOne($actions, $config, $options);
+		$actions = buildActions(1, 1);
+		
+		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
 		echo json_encode($data);
 
 
