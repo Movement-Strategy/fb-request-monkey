@@ -37,10 +37,10 @@ require_once('../libs/fb_sdk/facebook.php');
 			'cookie' => true,
 		);
 		
-		$actions = __::map($users, function($user) {
+		$userActions = __::map($users, function($user) {
 			return array(
 				'token' => $user['token'],
-				'query' => 'debug_token',
+				'query' => 'me/',
 				'method' => 'GET',
 				'label' => $user['id'],
 				'params' => array(
@@ -51,10 +51,10 @@ require_once('../libs/fb_sdk/facebook.php');
 				
 		$actions = array();
 		$i = 1;
-		while ($i <= 4) {
+		while ($i <= 100) {
 			$label1 = $i % 2 == 0 ? 'query1' : 'query2';
 			$label2 = $i + 1000;
-			$actionToAdd = $action;
+			$actionToAdd = $userActions[1];
 			$actionToAdd['label'] = array($label2, $label1);
 			array_push($actions, $actionToAdd);
 			$i++;
@@ -65,7 +65,7 @@ require_once('../libs/fb_sdk/facebook.php');
 			'allowErrors' => true,
 		);
 		
-		$data = FB_Request_Monkey::sendOne($actions[1], $config, $options);
+		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
 		echo json_encode($data);
 
 

@@ -221,6 +221,7 @@
 					$isBatched = $response['isBatched'];
 					
 					if($isBatched) {
+						
 						// get all of the responses in this batch
 						$allResponses = $response['response'];
 						$responseIndex = 0;
@@ -240,14 +241,12 @@
 					} else {
 						$action = $actions[0];
 						$response = $response['response'];
-						return FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors);
+						return array(FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors));
 					}
 				})
+			->flatten(true)
 			->value();			
-			// if there are multiple responses, flatten them into a single array
-			if($actionCount != 1) {
-				$allProcessedResponses = __::flatten($allProcessedResponses, true);
-			}
+			
 			return $allProcessedResponses;
 		}
 		
