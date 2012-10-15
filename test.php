@@ -8,7 +8,11 @@ require_once('../libs/underscore/underscore.php');
 require_once('../libs/fb_sdk/facebook.php');
 
 
-			
+	$user = array(
+		'token' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
+		'id' => 678234993,
+	);
+		
 	$users = array(
 		// invalid
 		array(
@@ -37,35 +41,46 @@ require_once('../libs/fb_sdk/facebook.php');
 			'cookie' => true,
 		);
 		
-		$actions = __::map($users, function($user) {
-			return array(
-				'token' => $user['token'],
-				'query' => 'debug_token',
-				'method' => 'GET',
-				'label' => $user['id'],
-				'params' => array(
-					'input_token' => $user['token'],
-				),
-			);
-		});
 				
-		$actions = array();
-		$i = 1;
-		while ($i <= 4) {
-			$label1 = $i % 2 == 0 ? 'query1' : 'query2';
-			$label2 = $i + 1000;
-			$actionToAdd = $action;
-			$actionToAdd['label'] = array($label2, $label1);
-			array_push($actions, $actionToAdd);
-			$i++;
-		}	
+		
+		function buildActions($userCount, $connectionCount) {
+			$actions = array();
+			$i = 1;
+			$userAction =  array(
+				'token' => $user['token'],
+				'query' => 'me',
+				'method' => 'GET',
+				'label' => array($user['id'], 'core'),
+			});
+			
+			$connectionAction = array(
+				'token' => $user['token'],
+				'query' => 'me/likes',
+				'method' => 'GET',
+				'label' => array($user['id'], 'likes'),
+			);
+			
+			while ($i <= $userCount) {
+				array_push($actions, $userAction);
+				$i++;
+			}
+			$i = 1;
+			
+			while ($i <= $connectionCount) {
+				array_push($actions, $connectionAction);
+				$i++;
+			}
+			
+			return $actions;
+		}
+			
 
 
 		$options = array(
-			'allowErrors' => true,
+/* 			'allowErrors' => true, */
 		);
 		
-		$data = FB_Request_Monkey::sendOne($actions[1], $config, $options);
+		$data = FB_Request_Monkey::sendOne($actions, $config, $options);
 		echo json_encode($data);
 
 
