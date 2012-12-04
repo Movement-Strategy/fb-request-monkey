@@ -10,19 +10,14 @@ require_once('../libs/fb_sdk/facebook.php');
 
 		
 	$users = array(
-		// invalid
 		array(
-			'token' => 'AAADNISLEU9oBACz88GSSSlx34sMzyXiVTSfQ5kMAWS33wHsMcjkkM9LzC8VUtYz4DZCjQgYkAvdaWwKPgISFgJtOhYCEam1IRm2wtZCeLflvtLvr41',
-			'id' => 1046940381,
-		),		
-		array(
-			'token' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
-			'id' => 678234993,
+			'token' => 'AAAGClxpgGZBEBAJnG5SwMbtMc74bdqmmZC6mhKhvrCdf9WzXqTmuyhTGcmN1vDvG4htjRm9NCDdC4zHCWFR8ZCyOHOARIszz8xOIreQ5wZDZD',
+			'id' => 26204911,
 		),
 		// valid
 		array(
-			'token' => 'AAADNISLEU9oBAAwOW8Jpt5RZCPlwOKeYEnjpwCsLh31CYE53cSoy6jvJpxwW6ExJWKqbH460yTfSpEXdEssAZAEmPWPSLCqZBdDSc6iKgZDZD',
-			'id' => 1762732006,
+			'token' => 'AAAGClxpgGZBEBAB4OmfSfFZB9ifgVr7fZBppvKnrCXvZCeW7dHQLx8lJj4elp6g4ZCzV2IaF5EwnAV6Bgp0vvey0ulEqZAgIvBvFTGP5jSKQZDZD',
+			'id' => 645767981,
 		),
 	);	
 	
@@ -32,8 +27,8 @@ require_once('../libs/fb_sdk/facebook.php');
 	
 		
 		$config = array(
-			'appId' => 225542200906714,
-			'secret' => '0b60e50aded2e11f0e389c50d3d5fa8b',
+			'appId' => 425060470889441,
+			'secret' => '4dc0f0c979cf69fc82241284e0ab3aa2',
 			'cookie' => true,
 		);
 		
@@ -41,8 +36,8 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 		function buildActions($userCount, $connectionCount) {
 			$user = array(
-				'token' => 'AAADNISLEU9oBAH29WP1Dg9PIk97KqaShHf0lPfDZAeRq7DPWhx4ZAwvAspQpfwe2xWmjQBNw11ZCa49RzWi11uEzq3y0FBUgBQ0PZApmzwZDZD',
-				'id' => 678234993,
+				'token' => 'AAAGClxpgGZBEBAJnG5SwMbtMc74bdqmmZC6mhKhvrCdf9WzXqTmuyhTGcmN1vDvG4htjRm9NCDdC4zHCWFR8ZCyOHOARIszz8xOIreQ5wZDZD',
+				'id' => 26204911,
 			);
 			$actions = array();
 			$i = 1;
@@ -80,11 +75,11 @@ require_once('../libs/fb_sdk/facebook.php');
 /* 			'allowErrors' => true, */
 		);
 		
-		$actions = buildActions(100, 1);
+		$actions = buildActions(1, 10);
 		
 		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
 		$test = FB_Request_Monkey::$testArray;
-		echo json_encode($test);
+/* 		echo json_encode($data); */
 
 
 	

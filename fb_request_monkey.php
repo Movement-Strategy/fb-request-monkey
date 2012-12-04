@@ -32,7 +32,7 @@
 			$actions = array($action);
 			return self::sendMany($actions, $config, $options);
 		}
-				
+						
 		/**
 		 * sendMany function.
 		 *
@@ -55,6 +55,7 @@
 			// an access token that has been confirmed to be valid to ensure that a batch request will go out
 			self::initialize($config);
 			$results = array();
+			
 			$processedResponses = self::getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken);
 			$results = self::addDataFromProcessedResponsesToResults($processedResponses, $results);
 			$overflowActions = self::getOverflowActions($processedResponses);
@@ -412,6 +413,7 @@
 				$responseBody = json_decode($response['body'], true);
 				// if its batched the count is wrapped in a 'body' key
 			} else {
+				
 				$responseBody = $response;
 			}
 			
@@ -492,9 +494,11 @@
 		 * @return void
 		 */
 		public static function batchResponseHasErrors($response) {
+			
 			$code = $response['code'];
 			$responseBody = json_decode($response['body'], true);
 			return $code != 200;
+			
 		}
 		
 		/**
