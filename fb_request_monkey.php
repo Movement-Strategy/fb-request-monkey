@@ -249,21 +249,14 @@
 					} else {
 						$action = $actions[0];
 						$response = $response['response'];
-<<<<<<< HEAD
-=======
 						
 						// return the single response so they who structure can always be flattened
->>>>>>> bottleneck_fix
 						return array(FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors));
 					}
 				})
 			->flatten(true)
-<<<<<<< HEAD
-			->value();			
-=======
 			->value();
 			// if there are multiple responses, flatten them into a single array
->>>>>>> bottleneck_fix
 			
 			return $allProcessedResponses;
 		}
