@@ -1,4 +1,7 @@
 <?php
+	
+	require_once('sdk.php');
+/* 	 */
 	class FB_Request_Monkey {
 	
 		const MAX_ITEMS_IN_BATCH = 50;
@@ -46,6 +49,7 @@
 		 * @return array facebook results
 		 */
 		public static function sendMany($actions, $config = null, $options = array()) {
+			
 			self::validateActions($actions, $options);
 			
 			// set allow errors if its in the options array, if not, set it as false
@@ -62,7 +66,7 @@
 			
 			// if there any overflow actions
 			if(count($overflowActions) > 0) {
-				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions, $allowErrors);
+				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions, $allowErrors, $failsafeToken);
 				
 				// because these are overflow requests, the sent result number is inaccurate, so it is set to zero
 				// to correct for the discrepency
@@ -211,6 +215,7 @@
 		 * @return array
 		 */
 		public static function processResponseQueue($responseQueue, $actionCount, $allowErrors) {
+			
 			$allProcessedResponses = __::chain($responseQueue)
 				
 				// iterate over all returned responses
@@ -223,8 +228,10 @@
 					$isBatched = $response['isBatched'];
 					
 					if($isBatched) {
+						
 						// get all of the responses in this batch
 						$allResponses = $response['response'];
+						
 						$responseIndex = 0;
 						return __::chain($allResponses)
 							
@@ -362,6 +369,7 @@
 					$startTime = time();
 				}
 				$response = FB_Request_Monkey::transmit($formattedCall);
+				
 				$isFirst = false;
 				$output =  array(
 					'response' => $response,
@@ -460,13 +468,7 @@
 					$offset = 0;
 				}
 				
-				// if there's a count a limit, 
-				// check if there are more results
-				if($count != null && $limit != null) {
-					$hasMoreResults = $count > $limit;
-				} else {
-					$hasMoreResults = false;
-				}
+				$hasMoreResults = $count > $limit;
 				
 				// add the needed variables into the response
 				$processedResponse['pageData'] = array(
@@ -494,7 +496,6 @@
 		 * @return void
 		 */
 		public static function batchResponseHasErrors($response) {
-			
 			$code = $response['code'];
 			$responseBody = json_decode($response['body'], true);
 			return $code != 200;
@@ -552,27 +553,18 @@
 		 * @return array facebook data
 		 */
 		public static function transmit($call) {			
-			$method = $call['method'];
-			$params = $call['params'];
-			$relativeURL = $call['relative_url'];
-			$response = self::$sdk->api($relativeURL, $method, $params);
-			return $response;
-		} 
+			return self::$sdk->transmit($call);
+		}
 		
 		public static function initialize($config) {
-			if($config) {
+			
+			if(self::$sdk) {
 				
-				// only initalize the sdk if it's already
-				if(self::$sdk == null) {
-					self::$sdk = new Facebook($config);
-				}
 			} else {
-				
-				// if there's no sdk and no config
-				if(self::$sdk == null) {
-					throw new Exception("Config array with App Secret and App ID required to initialize");
-				}
+				self::$sdk = new SDK();
+				self::$sdk->initialize($config); 
 			}
+			
 		}
 		
 		/**

@@ -9,10 +9,11 @@ require_once('../libs/fb_sdk/facebook.php');
 
 
 		
+
 	$users = array(
 		array(
-			'token' => 'AAAGClxpgGZBEBAJnG5SwMbtMc74bdqmmZC6mhKhvrCdf9WzXqTmuyhTGcmN1vDvG4htjRm9NCDdC4zHCWFR8ZCyOHOARIszz8xOIreQ5wZDZD',
-			'id' => 26204911,
+			'token' => 'AAAHCqE1ZBYBgBAH9ueXV3tNT0dIYRGcjXtAj5lXELEBco8K35ZAnvTNlWz0tXDBBnkgZCkuGf7tnYJYhmkK8WKglGy98fykhcaEXWKgjQZDZD',
+			'id' => 100000669004970,
 		),
 		// valid
 		array(
@@ -27,12 +28,12 @@ require_once('../libs/fb_sdk/facebook.php');
 	
 		
 		$config = array(
-			'appId' => 425060470889441,
-			'secret' => '4dc0f0c979cf69fc82241284e0ab3aa2',
+			'appId' => 284535141662554,
+			'secret' => '5278d8afca604e072e2f0dfe62a696b0',
 			'cookie' => true,
 		);
 		
-				
+		/*	
 		
 		function buildActions($userCount, $connectionCount) {
 			$user = array(
@@ -71,15 +72,49 @@ require_once('../libs/fb_sdk/facebook.php');
 			
 
 
+
+
 		$options = array(
-/* 			'allowErrors' => true, */
+ 			'allowErrors' => true, 
 		);
+		
+		
 		
 		$actions = buildActions(1, 10);
 		
-		$data = FB_Request_Monkey::sendMany($actions, $config, $options);
+		
+		*/
+		
+		$connectionAction = array(
+			'token' => $users[0]['token'],
+			'query' => 'me/friends',
+			'method' => 'GET',
+/* 			'label' => array($user['id'], 'likes'), */
+		);
+		
+		
+		
+		$friends = FB_Request_Monkey::sendOne($connectionAction, $config);
+		$likeActions = array();
+		foreach($friends['data'][0] as $friend) {
+			echo json_encode($friend['id']);
+			$likeAction = array(
+				'token' => $users[0]['token'],
+				'query' => $friend['id'] . '/likes',
+				'method' => 'GET',
+			);
+			array_push($likeActions, $likeAction);
+		}
+		
+		$results = FB_Request_Monkey::sendMany($likeActions, $config);
+		
+		echo json_encode($results);
+		
+		
+/*
 		$test = FB_Request_Monkey::$testArray;
-/* 		echo json_encode($data); */
+		echo json_encode($data);
+*/
 
 
 	

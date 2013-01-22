@@ -6,6 +6,8 @@
 	require_once('/Users/cbranch101/Sites/clay/movement_strategy/fb_request_monkey/fb_request_monkey.php');
 	require_once('/Users/cbranch101/Sites/clay/movement_strategy/php_mongorm/php_mongorm.php');
 	require_once('/Users/cbranch101/Sites/clay/movement_strategy/functional_test_builder/functional_test_builder.php');
+	require_once('/Users/cbranch101/Sites/clay/movement_strategy/libs/fb_sdk/facebook.php');
+	require_once('/Users/cbranch101/Sites/clay/movement_strategy/fb_request_monkey/sdk.php');
 
 	class RequestMonkeyTest extends PHPUnit_Framework_TestCase {
 		
@@ -31,7 +33,7 @@
 			return $action;
 		}
 		
-		public function buildResponse($responseType, $data, $actions, $limit = 10, $count = null, $code = 200, $isSingle = false) {
+		public function buildResponse($responseType, $data, $limit = 10, $count = null, $code = 200, $isSingle = false) {
 			$count = $count ? $count : count($data);
 			
 			$responseMap = array(
@@ -39,7 +41,6 @@
 					'get_response' => function($data, $limit) {
 						return $data;
 					},
-					'is_batched' => false, 
 				),
 				'paged_unbatched' => array(
 					'get_response' => function($data, $limit, $isSingle) use($count){
@@ -56,7 +57,6 @@
 							),
 						);
 					},
-					'is_batched' => false,
 				),
 				'unpaged_batched' => array(
 					'get_response' => function($data, $limit, $isSingle, $code) {
@@ -74,7 +74,6 @@
 							}
 							return $response;
 					},
-					'is_batched' => true,
 				),
 				'paged_batched' => array(
 					'get_response' => function($data, $limit, $isSingle, $code) use($count){
@@ -104,23 +103,19 @@
 							}
 							return $response;
 					},
-					'is_batched' => true,
 				),				
 				
 			);
 			
-			$response = array();
-			$response['response'] = $responseMap[$responseType]['get_response']($data, $limit, $isSingle, $code);
-			$response['isBatched'] = $responseMap[$responseType]['is_batched'];
-			$response['actions'] = $actions;
+			$response = $responseMap[$responseType]['get_response']($data, $limit, $isSingle, $code);
 			
 			return $response;
 			
 		}
 		
 		public function getResponseBuildingFunction() {
-			$response = function($responseType, $data, $actions, $limit = 10, $count = null, $isSingle = false) {
-				return RequestMonkeyTest::buildResponse($responseType, $data, $actions, $limit, $count, $isSingle);
+			$response = function($responseType, $data, $limit = 10, $count = null, $isSingle = false) {
+				return RequestMonkeyTest::buildResponse($responseType, $data, $limit, $count, $isSingle);
 			};
 			
 			return $response;
@@ -166,15 +161,60 @@
 		public function buildTest($test) {
 			Test_Builder::buildTest($test, self::$functionalBuilderConfig);
 		}
-				
+		
+		public function getDefaultConfig() {
+			return array(
+				'appId' => 1000,
+				'secret' => 'abcdef',
+				'cookie' => true,
+			);
+		}
+		
 		public function getEntryPointMap() {
 			
 			return array(
 				'all' => self::getAllEntryPoint(),
 				'action' => self::getActionEntryPoint(),
-				'response' => self::getResponseEntryPoint(),
+				'send_many' => self::getSendManyEntryPoint(),
+				'send_one' => self::getSendOneEntryPoint(),
+				'initialize' => self::getInitializeEntryPoint(),
 			);
-			
+
+		}
+		
+		public function getInitializeEntryPoint() {
+			return array(
+				'get_output' => function($input, $extraParams) {
+					$config = $input['config'];
+					FB_Request_Monkey::initialize($config);
+					return array(
+						'sdk' => FB_Request_Monkey::$sdk,
+					);
+				},
+				'assert_input' => array(),
+			);
+		}
+		
+		public function getBaseInitializeConfiguration() {
+			return array(
+				'get_assert_args' => function($output, $assertInput){
+					
+					return array(
+						'sdk' => $output['sdk'],
+						'expected_class' => 'SDK',					
+					);
+
+				},
+				'asserts' => array (
+					'assertNotNull' => array(
+						'expected_class',
+						'sdk', 
+					),
+				),
+				'input' => array(
+					'config' => self::getDefaultConfig(),
+				),
+			);
 		}
 		
 		public function getAllEntryPoint() {
@@ -215,48 +255,55 @@
 				},
 			);
 		}
-		
-		public function getResponseEntryPoint() {
+				
+		public function getSendManyEntryPoint() {
 			return array(
-				'get_output' => function($input, $extraParams) {
-					
-					$responseQueue = $input['response_queue'];
-					$overflowResponseQueue = isset($input['overflow_response_queue']) ? $input['overflow_response_queue'] : array();
-					$results = array();
-					$allowErrors = isset($input['allow_errors']) ? $input['allow_errors'] : false;
-					$actionCount = 0;
-					$processedResponses = FB_Request_Monkey::processResponseQueue($responseQueue, $actionCount, $allowErrors);
-					$results = FB_Request_Monkey::addDataFromProcessedResponsesToResults($processedResponses, $results);
-					$overflowActions = FB_Request_Monkey::getOverflowActions($processedResponses);
-					
-					if(count($overflowActions) > 0) {
-						
-						$overflowProcessedResponses = FB_Request_Monkey::processResponseQueue($overflowResponseQueue, $actionCount, $allowErrors);
-						
-						
-						
-						// because these are overflow requests, the sent result number is inaccurate, so it is set to zero
-						// to correct for the discrepency
-						$overflowProcessedResponses = FB_Request_Monkey::setSentDataCountToZero($overflowProcessedResponses);
-						
-						$results = FB_Request_Monkey::addDataFromProcessedResponsesToResults($overflowProcessedResponses, $results);
-						
-						// combine the two response sets together so they can be checked
-						// for the number of results
-						$processedResponses = array_merge($processedResponses, $overflowProcessedResponses);
-						
-					}
-					
-					FB_Request_Monkey::checkDataCount($processedResponses, $allowErrors);
-					
-					return array(
-						'results' => $results,
-						'overflow_actions' => $overflowActions,
-					);
+				'get_output' => function($input, $extraParams, $test) {
+					$actions = $input['actions'];
+					$responses = $input['responses'];
+					$overflowResponses = isset($input['overflow_responses']) ? $input['overflow_responses'] : array();
+					$allResponses = array_merge($responses, $overflowResponses);
+					$config = isset($input['config']) ? $input['config'] : RequestMonkeyTest::getDefaultConfig();
+					$options = isset($input['options']) ? $input['options'] : array();
+					$stubSDK = RequestMonkeyTest::getStubSDK($allResponses, $test);
+					FB_Request_Monkey::$sdk = $stubSDK;
+					$results = FB_Request_Monkey::sendMany($actions, $config, $options);
+					return $results;
 				},
 			);
 		}
-						
+		
+		public function getSendOneEntryPoint() {
+			return array(
+				'get_output' => function($input, $extraParams, $test) {
+					$actions = $input['actions'];
+					$responses = $input['responses'];
+					$overflowResponses = isset($input['overflow_responses']) ? $input['overflow_responses'] : array();
+					$allResponses = array_merge($responses, $overflowResponses);
+					$config = isset($input['config']) ? $input['config'] : RequestMonkeyTest::getDefaultConfig();
+					$options = isset($input['options']) ? $input['options'] : array();
+					$stubSDK = RequestMonkeyTest::getStubSDK($allResponses, $test);
+					FB_Request_Monkey::$sdk = $stubSDK;
+					$results = FB_Request_Monkey::sendOne($actions[0], $config, $options);
+					return $results;
+				},
+			);
+		}
+		
+		public function getStubSDK($responses, $test) {
+			
+			$stubSDK = $test->getMock('SDK');			
+								
+			$stubSDK->expects($test->any())
+				->method('initialize')
+				->will($test->returnValue(null));
+				
+			$stubSDK->expects($test->any())
+				->method('transmit')
+				->will(call_user_func_array(array($test, "onConsecutiveCalls"), $responses));
+			return $stubSDK;
+		}	
+									
 		public function getConfigurationMap() {
 			
 			$action = self::getActionBuildingFunction();
@@ -269,15 +316,19 @@
 			return array(
 				'single_action_single_call' => self::getSingleActionSingleCallConfiguration($action),
 				'batch_action_single_call' => self::getBatchActionSingleCallConfiguration($action),
+
 				'unpaged_unbatched_response' => self::getUnpagedUnbatchedResponseConfiguration($action, $response),
+			
 				'paged_unbatched_response' => self::getPagedUnbatchedResponseConfiguration($action, $response),
+
 				'unpaged_batched_response' => self::getUnpagedBatchedResponseConfiguration($action, $response),
 				'paged_batched_response' => self::getPagedBatchedResponseConfiguration($action, $response),
-				'multiple_unpaged_batched_response' => self::getMultipleUnpagedBatchedResponseConfiguration($action, $response),
+ 				'multiple_unpaged_batched_response' => self::getMultipleUnpagedBatchedResponseConfiguration($action, $response),
+ 				'base_initialize' =>  self::getBaseInitializeConfiguration(),
 			);
 			
 		}
-		
+
 		public function getSingleActionSingleCallConfiguration($action) {
 
 			return array(
@@ -308,6 +359,8 @@
 				),
 			);
 		}
+		
+		
 								
 		public function getBatchActionSingleCallConfiguration($action) {
 			return array(
@@ -358,97 +411,78 @@
 		}
 		
 		public function getUnpagedUnbatchedResponseConfiguration($action, $response) {
-			$actions = array(
-				$action(
-					'me'
-				),
-			);
 			return array(
 				'input' => array(
-					'response_queue' => array(
+					'responses' => array(
 						$response(
 							'unpaged_unbatched', 
 							array(
 								'test1' => 'test',
-							),
-							$actions
+							)
+						),
+					),
+					'actions' => array(
+						$action(
+							'me'
 						),
 					),			
 				),
 				'assert_input' => array(
 					'expected' => array(
-						'results' => array(
-							'data' => array(
-								array(
-									'test1' => 'test',
-								),
+						'data' => array(
+							array(
+								'test1' => 'test',
 							),
 						),
-						'overflow_actions' => array(),
 					),
 				),
 			);
 		}
 		
 		public function getPagedUnbatchedResponseConfiguration($action, $response) {
-			
-			$actions = array(
-				$action(
-					'me'
-				),
-			);
-			
+						
 			return array(
 				'input' => array(
-					'response_queue' => array(
+					'responses' => array(
 						$response(
 							'paged_unbatched', 
 							array(
 								'test1',
 							),
 							
-							$actions,
 							1, // limit 
 							2 // count	
 						),
 					),
-					'overflow_response_queue' => array(
+					'overflow_responses' => array(
 						$response(
 							'paged_unbatched', 
 							array(
 								'test2',
 							),
 							
-							$actions,
 							1, // limit
 							2 // count	
+						),
+					),
+					'actions' => array(
+						$action(
+							'me'
 						),
 					),
 								
 				),
 				'assert_input' => array(
 					'expected' => array(
-						'results' => array(
-							'data' => array(
+						'data' => array(
+							array(
 								array(
-									array(
-										'test1',
-									),
-								),
-								array(
-									array(
-										'test2',
-									),
+									'test1',
 								),
 							),
-						),
-						'overflow_actions' => array(
 							array(
-								'query' => 'me',
-								'method' => 'GET',
-								'access_token' => 'test',
-								'params' => array(
-									'offset' => 1,
+								array(
+									'test2',
 								),
 							),
 						),
@@ -458,17 +492,9 @@
 		}
 		
 		public function getUnpagedBatchedResponseConfiguration($action, $response) {
-			$actions = array(
-				$action(
-					'me'
-				),
-				$action(
-					'me'
-				),
-			);
 			return array(
 				'input' => array(
-					'response_queue' => array(
+					'responses' => array(
 						$response(
 							'unpaged_batched', 
 							array(
@@ -482,44 +508,40 @@
 										'test2', 
 									),
 								),
-							),
-							
-							$actions
+							)
+						),
+					),
+					'actions' => array(
+						$action(
+							'me'
+						),
+						$action(
+							'me'
 						),
 					),			
 				),
 				'assert_input' => array(
 					'expected' => array(
-						'results' => array(
-							'data' => array(
-								array(
-									'test1',
-								),
-								array(
-									'test2',
-								),
+						'data' => array(
+							array(
+								'test1',
 							),
-						),
-						'overflow_actions' => array(
-						
+							array(
+								'test2',
+							),
 						),
 					),
 				),
 			);
 		}
+
 		
 		public function getPagedBatchedResponseConfiguration($action, $response) {
 			$actions = array(
-				$action(
-					'me'
-				),
-				$action(
-					'me'
-				),
 			);
 			return array(
 				'input' => array(
-					'response_queue' => array(
+					'responses' => array(
 						$response(
 							'paged_batched', 
 							array(
@@ -542,7 +564,7 @@
 							$actions
 						),
 					),
-					'overflow_response_queue' => array(
+					'overflow_responses' => array(
 						$response(
 							'paged_batched', 
 							array(
@@ -564,122 +586,91 @@
 							
 							$actions
 						),
+					),
+					'actions' => array(
+						$action(
+							'me'
+						),
+						$action(
+							'me'
+						),
 					),			
 				),
 				'assert_input' => array(
 					'expected' => array(
-						'results' => array(
-							'data' => array(
-								array(
-									'stuff1',
-								),
-								array(
-									'things1',
-								),
-								array(
-									'stuff2',
-								),
-								array(
-									'things2',
-								),
+						'data' => array(
+							array(
+								'stuff1',
+							),
+							array(
+								'things1',
+							),
+							array(
+								'stuff2',
+							),
+							array(
+								'things2',
 							),
 						),
-						'overflow_actions' => array(
-							array(
-								'query' => 'me',
-								'method' => 'GET',
-								'access_token' => 'test',
-								'params' => array(
-									'offset' => 1,
-								),
-							),
-							array(
-								'query' => 'me',
-								'method' => 'GET',
-								'access_token' => 'test',
-								'params' => array(
-									'offset' => 1,
-								),
-							),
-						),		
 					),
 				),
 			);
 		}
-		
+	
+
 		public function getMultipleUnpagedBatchedResponseConfiguration($action, $response) {
-			$actions = array(
-				$action(
+			
+			$actionCount = 53;
+			
+			$actions = array();
+			$expectedData = array();
+			$dataForResponses = array();
+			$i = 1;
+			while($i < $actionCount) {
+				$currentData = array(
+					'test' . $i,
+				);
+				$dataForResponse = array(
+					'batch_data' => $currentData,
+				);
+				
+				$newAction = $action(
 					'me'
-				),
-				$action(
-					'me'
-				),
-			);
+				);
+				array_push($actions, $newAction);
+				array_push($dataForResponses, $dataForResponse);
+				array_push($expectedData, $currentData);
+				$i++;
+				
+			}
+			
+			$chunkedResponses = array_chunk($dataForResponses, 50);
+			$chunk1 = $chunkedResponses[0];
+			$chunk2 = $chunkedResponses[1];
+			
+			
 			return array(
 				'input' => array(
-					'response_queue' => array(
+					'responses' => array(
 						$response(
 							'unpaged_batched', 
-							array(
-								array(
-									'batch_data' => array(
-										'test1',
-									),
-								),
-								array(
-									'batch_data' => array(
-										'test2',
-									),
-								),
-							),
-							
-							$actions
+							$chunk1
 						),
 						$response(
 							'unpaged_batched', 
-							array(
-								array(
-									'batch_data' => array(
-										'test3',
-									),
-								),
-								array(
-									'batch_data' => array(
-										'test4',
-									),
-								),
-							),
-							
-							$actions
+							$chunk2
 						),
-					),			
+					),
+					'actions' => $actions,		
 				),
 				'assert_input' => array(
 					'expected' => array(
-						'results' => array(
-							'data' => array(
-								array(
-									'test1',
-								),
-								array(
-									'test2',
-								),
-								array(
-									'test3',
-								),
-								array(
-									'test4',
-								),
-							),
-						),
-						'overflow_actions' => array(
-						),
+						'data' => $expectedData,
 					),
 				),
 			);
 		}
-				
+
 		public function testSingleActionSingleCall() {
 			
 			$test = array(
@@ -689,7 +680,89 @@
 			
 			return self::buildTest($test);
 		}
+		 	     
+	    /**
+	     * @expectedException Exception
+	     */		
+		public function testSingleActionSingleCallWithInvalidParams() {
+			$test = array(
+				'configuration' => 'unpaged_unbatched_response',
+				'entry_point' => 'send_many',
+				'alterations' => array(
+					'input' => function($input) {
+						$input['options'] = array(
+							'failsafeToken' => 'test',
+						);
+						$input['actions'][0]['query'] = 'debug_token';
+						return $input;
+					},
+				),
+			);
+			
+			return self::buildTest($test);
+		}
 		
+		public function testSingleActionSingleCallWithEmptyString() {
+			$test = array(
+				'configuration' => 'single_action_single_call',
+				'entry_point' => 'action',
+				'alterations' => array(
+					'input' => function($input) {
+						$input['actions'][0]['query'] = '';
+						return $input;
+					},
+					'assert_input' => function($assertInput) {
+						$assertInput['expected'][0]['relative_url'] = '';
+						$assertInput['expected'][0]['actions'][0]['relative_url'] = '';
+						return $assertInput;
+					}
+				),
+			);
+							
+							
+			return self::buildTest($test);
+		}
+		
+		public function testBatchActionSingleCallWithActionName() {
+			
+			$test = array(
+				'configuration' => 'batch_action_single_call',
+				'entry_point' => 'action',
+				'alterations' => array(
+					'input' => function($input) {
+						$input['actions'][0]['name'] = 'test';
+						return $input;
+					},
+					'assert_input' => function($assertInput) {
+						$assertInput['expected'][0]['params']['batch'][0]['name'] = 'test';
+						$assertInput['expected'][0]['actions'][0]['name'] = 'test';
+						return $assertInput;
+					}
+				),
+			);
+							
+			return self::buildTest($test);
+		}
+		
+		public function testBatchActionSingleCallWithFailsafeToken() {
+			$test = array(
+				'configuration' => 'batch_action_single_call',
+				'entry_point' => 'action',
+				'alterations' => array(
+					'input' => function($input) {
+						$input['failsafe_token'] = 'test';
+						return $input;
+					},
+					'assert_input' => function($assertInput) {
+						$assertInput['expected'][0]['params']['access_token'] = 'test';
+						return $assertInput;
+					}
+				),
+			);
+			
+			return self::buildTest($test);
+		}
+				
 		public function testSingleActionSingleCallWithBoundaryQuery() {
 			
 			$test = array(
@@ -737,25 +810,24 @@
 		
 		public function testUnpagedUnbatchedResponse() {
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'unpaged_unbatched_response',
 			);
 			
 			self::buildTest($test);
 		}
-		
+
 		public function testUnpagedUnbatchedResponseWithSingleLabel() {
-			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'unpaged_unbatched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = 'test';
+						$input['actions'][0]['label'] = 'test';
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'test' => array(
 								array(
 									'test1' => 'test',
@@ -772,15 +844,15 @@
 		
 		public function testUnpagedUnbatchedResponseWithMultiLabel() {
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'unpaged_unbatched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = array('label1', 'label2');
+						$input['actions'][0]['label'] = array('label1', 'label2');
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'label1' => array(
 								'label2' => array(
 									array(
@@ -793,46 +865,50 @@
 					},
 				),
 			);
+			
+			$test = self::buildTest($test);
 		}
 				
 		public function testPagedUnbatchedResponse() {
 			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'paged_unbatched_response',
 			);
 			
 			self::buildTest($test);
 		}
-	   
+		 	     
 	    /**
 	     * @expectedException Exception
 	     */		
 		public function testPagedUnbatchedResponseWithBadCount() {
 			$action = self::getActionBuildingFunction();
 			$response = self::getResponseBuildingFunction();
-			
-			$actions = array(
-				$action(
-					'me'
-				),
-			);
-			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'paged_unbatched_response',
 				'alterations' => array(
-					'input' => function($input) use($response, $actions) {
-						$input['response_queue'] = array(
+					'input' => function($input) use($response, $action) {
+						$input['responses'] = array(
 							$response(
 								'paged_unbatched', 
 								array(
 									'test1',
 								),
 								
-								$actions,
 								1, // limit 
 								3 // count	
+							),
+							$response(
+								'unpaged_unbatched',
+								array()
+							),
+						);
+												
+						$input['actions'] = array(
+							$action(
+								'me'
 							),
 						);
 						
@@ -843,20 +919,19 @@
 			
 			self::buildTest($test);
 		}
-		
+
 		public function testPagedUnbatchedResponseWithSingleLabel() {
 		
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'paged_unbatched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = 'label1';
-						$input['overflow_response_queue'][0]['actions'][0]['label'] = 'label1';
+						$input['actions'][0]['label'] = 'label1';
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'label1' => array(
 								array(
 									array(
@@ -870,7 +945,6 @@
 								),
 							),
 						);
-						$assertInput['expected']['overflow_actions'][0]['label'] = 'label1';
 						return $assertInput;
 					},
 				),
@@ -883,16 +957,15 @@
 		public function testPagedUnbatchedResponseWithMultiLabel() {
 		
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'paged_unbatched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = array('type1', 'label1');
-						$input['overflow_response_queue'][0]['actions'][0]['label'] = array('type1', 'label1');
+						$input['actions'][0]['label'] = array('type1', 'label1');
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'type1' => array(
 								'label1' => array(
 									array(
@@ -908,7 +981,6 @@
 								),
 							),
 						);
-						$assertInput['expected']['overflow_actions'][0]['label'] = array('type1', 'label1');
 						return $assertInput;
 					},
 				),
@@ -921,13 +993,13 @@
 		public function testUnpagedBatchedResponse() {
 			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'unpaged_batched_response',
 			);
 			
 			self::buildTest($test);
 		}
-	   
+		
 	    /**
 	     * @expectedException Exception
 	     */		
@@ -935,20 +1007,12 @@
 			
 			$response = self::getResponseBuildingFunction();
 			$action = self::getActionBuildingFunction();
-			$actions = array(
-				$action(
-					'me'
-				),
-				$action(
-					'me'
-				),
-			);
 			$test = array(
 				'configuration' => 'unpaged_batched_response',
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'alterations' => array(
-					'input' => function($input) use($response, $actions) {
-						$input['response_queue'] = array(
+					'input' => function($input) use($response, $action) {
+						$input['responses'] = array(
 							$response(
 								'unpaged_batched', 
 								array(
@@ -963,10 +1027,16 @@
 										),
 										'batch_code' => 299,
 									),
-								),
-								
-								$actions
-								
+								)
+							),
+						);
+						
+						$input['actions'] = array(
+							$action(
+								'me'
+							),
+							$action(
+								'me'
 							),
 						);
 						
@@ -981,16 +1051,16 @@
 		public function testUnPagedBatchedResponseWithSingleLabel() {
 			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'unpaged_batched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = 'label1';
-						$input['response_queue'][0]['actions'][1]['label'] = 'label2';
+						$input['actions'][0]['label'] = 'label1';
+						$input['actions'][1]['label'] = 'label2';
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'label1' => array(
 								array(
 									'test1',
@@ -1013,16 +1083,16 @@
 		public function testUnpagedBatchedResponseWithMultiLabel() {
 			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'unpaged_batched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = array('type1', 'label1');
-						$input['response_queue'][0]['actions'][1]['label'] = array('type1', 'label2');
+						$input['actions'][0]['label'] = array('type1', 'label1');
+						$input['actions'][1]['label'] = array('type1', 'label2');
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'type1' => array(
 								'label1' => array(
 									array(
@@ -1048,20 +1118,12 @@
 			
 			$response = self::getResponseBuildingFunction();
 			$action = self::getActionBuildingFunction();
-			$actions = array(
-				$action(
-					'me'
-				),
-				$action(
-					'me'
-				),
-			);
 			$test = array(
 				'configuration' => 'unpaged_batched_response',
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'alterations' => array(
-					'input' => function($input) use($response, $actions) {
-						$input['response_queue'] = array(
+					'input' => function($input) use($response, $action) {
+						$input['responses'] = array(
 							$response(
 								'unpaged_batched', 
 								array(
@@ -1080,19 +1142,24 @@
 										),
 										'batch_code' => 299,
 									),
-								),
-								
-								$actions
+								)
 								
 							),
 						);
 						
-						$input['allow_errors'] = true;
-						
+						$input['options']['allowErrors'] = true;
+						$input['actions'] = array(
+							$action(
+								'me'
+							),
+							$action(
+								'me'
+							),
+						);
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results']['data'] = array(
+						$assertInput['expected']['data'] = array(
 							array(
 								'test1',
 							),
@@ -1116,28 +1183,26 @@
 		
 		public function testPagedBatchedResponse() {
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'paged_batched_response',
 			);
 			
 			self::buildTest($test);
 		}
-		
+
 		public function testPagedBatchedResponseWithSingleLabel() {
 			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'paged_batched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = 'stuff';
-						$input['response_queue'][0]['actions'][1]['label'] = 'things';
-						$input['overflow_response_queue'][0]['actions'][0]['label'] = 'stuff';
-						$input['overflow_response_queue'][0]['actions'][1]['label'] = 'things';
+						$input['actions'][0]['label'] = 'stuff';
+						$input['actions'][1]['label'] = 'things';
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'stuff' => array(
 								
 								array(
@@ -1156,8 +1221,6 @@
 								),
 							),
 						);
-						$assertInput['expected']['overflow_actions'][0]['label'] = 'stuff';
-						$assertInput['expected']['overflow_actions'][1]['label'] = 'things';
 						return $assertInput;
 					},
 				),
@@ -1169,18 +1232,16 @@
 		public function testPagedBatchedResponseWithMultiLabel() {
 			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'paged_batched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['response_queue'][0]['actions'][0]['label'] = array('stuff_and_things', 'stuff');
-						$input['response_queue'][0]['actions'][1]['label'] = array('stuff_and_things', 'things');
-						$input['overflow_response_queue'][0]['actions'][0]['label'] = array('stuff_and_things', 'stuff');
-						$input['overflow_response_queue'][0]['actions'][1]['label'] = array('stuff_and_things', 'things');
+						$input['actions'][0]['label'] = array('stuff_and_things', 'stuff');
+						$input['actions'][1]['label'] = array('stuff_and_things', 'things');
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results'] = array(
+						$assertInput['expected'] = array(
 							'stuff_and_things' => array(
 								'stuff' => array(
 									
@@ -1201,16 +1262,14 @@
 								),
 							),
 						);
-						$assertInput['expected']['overflow_actions'][0]['label'] = array('stuff_and_things', 'stuff');
-						$assertInput['expected']['overflow_actions'][1]['label'] = array('stuff_and_things', 'things');
 						return $assertInput;
 					},
 				),
 			);
 			
 			self::buildTest($test);
-		}	    
-	    
+		}
+		    
 	    /**
 	     * @expectedException Exception
 	     */		
@@ -1218,20 +1277,12 @@
 			
 			$response = self::getResponseBuildingFunction();
 			$action = self::getActionBuildingFunction();
-			$actions = array(
-				$action(
-					'me'
-				),
-				$action(
-					'me'
-				),
-			);
 			$test = array(
 				'configuration' => 'paged_batched_response',
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'alterations' => array(
-					'input' => function($input) use($response, $actions) {
-						$input['overflow_response_queue'] = array(
+					'input' => function($input) use($response, $action) {
+						$input['overflow_responses'] = array(
 							$response(
 								'paged_batched', 
 								array(
@@ -1242,16 +1293,23 @@
 										'batch_count' => 2,
 										'batch_limit' => 1,
 									),
-								),
-								
-								$actions
+								)
+							),
+						);
+						
+						$input['actions'] = array(
+							$action(
+								'me'
+							),
+							$action(
+								'me'
 							),
 						);
 												
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected']['results']['data'] = array(
+						$assertInput['expected']['data'] = array(
 							array(
 								'test1',
 							),
@@ -1272,18 +1330,58 @@
 			self::buildTest($test);
 			
 		}
-				
+		
 		public function testMultipleUnpagedBatchedResponses() {
 			
 			$test = array(
-				'entry_point' => 'response',
+				'entry_point' => 'send_many',
 				'configuration' => 'multiple_unpaged_batched_response',
 			);
 			
 			self::buildTest($test);
 		}
 		
+		public function testSendOne() {
+			$test = array(
+				'entry_point' => 'send_one',
+				'configuration' => 'unpaged_unbatched_response',
+			);
+			
+			self::buildTest($test);
+		}
 		
-				
+		public function testInitializeWithNullSDK() {
+			$test = array(
+				'configuration' => 'base_initialize',
+				'entry_point' => 'initialize',
+				'alterations' => array(
+					'get_output' => function($getOutput) {
+						$newGetOutput = function($input, $extraParams) {
+							$config = $input['config'];
+							FB_Request_Monkey::$sdk = null;
+							FB_Request_Monkey::initialize($config);
+							return array(
+								'sdk' => FB_Request_Monkey::$sdk,
+							);
+						};
+						return $newGetOutput;
+					},
+				),
+			);
+			
+			return self::buildTest($test);
+		}
+		
+		public function testInitialize() {
+			
+			$test = array(
+				'configuration' => 'base_initialize',
+				'entry_point' => 'initialize',
+			);
+			
+			return self::buildTest($test);
+			
+		}
+		
 		
 	}
