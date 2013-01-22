@@ -1,4 +1,7 @@
 <?php
+	
+	require_once('sdk.php');
+/* 	 */
 	class FB_Request_Monkey {
 	
 		const MAX_ITEMS_IN_BATCH = 50;
@@ -15,6 +18,7 @@
 		);
 				
 		public static $sdk = null;
+		public static $testArray = array();
 		
 		/**
 		 * sendOne function.
@@ -31,7 +35,7 @@
 			$actions = array($action);
 			return self::sendMany($actions, $config, $options);
 		}
-				
+						
 		/**
 		 * sendMany function.
 		 *
@@ -45,6 +49,7 @@
 		 * @return array facebook results
 		 */
 		public static function sendMany($actions, $config = null, $options = array()) {
+			
 			self::validateActions($actions, $options);
 			
 			// set allow errors if its in the options array, if not, set it as false
@@ -54,13 +59,14 @@
 			// an access token that has been confirmed to be valid to ensure that a batch request will go out
 			self::initialize($config);
 			$results = array();
+			
 			$processedResponses = self::getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken);
 			$results = self::addDataFromProcessedResponsesToResults($processedResponses, $results);
 			$overflowActions = self::getOverflowActions($processedResponses);
 			
 			// if there any overflow actions
 			if(count($overflowActions) > 0) {
-				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions, $allowErrors);
+				$overflowProcessedResponses = self::getProcessedResponsesFromActions($overflowActions, $allowErrors, $failsafeToken);
 				
 				// because these are overflow requests, the sent result number is inaccurate, so it is set to zero
 				// to correct for the discrepency
@@ -209,6 +215,7 @@
 		 * @return array
 		 */
 		public static function processResponseQueue($responseQueue, $actionCount, $allowErrors) {
+			
 			$allProcessedResponses = __::chain($responseQueue)
 				
 				// iterate over all returned responses
@@ -224,6 +231,7 @@
 						
 						// get all of the responses in this batch
 						$allResponses = $response['response'];
+						
 						$responseIndex = 0;
 						return __::chain($allResponses)
 							
@@ -241,11 +249,21 @@
 					} else {
 						$action = $actions[0];
 						$response = $response['response'];
+<<<<<<< HEAD
+=======
+						
+						// return the single response so they who structure can always be flattened
+>>>>>>> bottleneck_fix
 						return array(FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors));
 					}
 				})
 			->flatten(true)
+<<<<<<< HEAD
 			->value();			
+=======
+			->value();
+			// if there are multiple responses, flatten them into a single array
+>>>>>>> bottleneck_fix
 			
 			return $allProcessedResponses;
 		}
@@ -338,11 +356,28 @@
 		 * @return array
 		 */
 		public static function sendAllCalls($formattedCallQueue, $actions) {
-			return __::map($formattedCallQueue, function($formattedCall) use($actions) {
+			$callCount = count($formattedCallQueue);
+			$actionCount = count($actions);
+			$test = array(
+				'callCount' => $callCount,
+				'actionCount' => $actionCount,
+			);
+			array_push(FB_Request_Monkey::$testArray, $test);
+			
+			$isFirst = true;
+			$startTime = microtime(true);
+			$endTime = 0;
+			$output = __::map($formattedCallQueue, function($formattedCall) use($actions, &$isFirst, &$startTime) {
 				
 				// is this a batch request or not
 				$isBatched = isset($formattedCall['params']['batch']);
+				
+				if($isFirst) {
+					$startTime = time();
+				}
 				$response = FB_Request_Monkey::transmit($formattedCall);
+				
+				$isFirst = false;
 				$output =  array(
 					'response' => $response,
 					'isBatched' => $isBatched,
@@ -350,6 +385,13 @@
 				);
 				return $output;
 			});
+			$endTime = microtime(true);
+			$difference = $endTime - $startTime;
+			$test = array(
+				'time_length' => $difference,
+			);
+			array_push(FB_Request_Monkey::$testArray, $test);
+			return $output;
 		}
 				
 		/**
@@ -386,6 +428,7 @@
 				$responseBody = json_decode($response['body'], true);
 				// if its batched the count is wrapped in a 'body' key
 			} else {
+				
 				$responseBody = $response;
 			}
 			
@@ -432,13 +475,7 @@
 					$offset = 0;
 				}
 				
-				// if there's a count a limit, 
-				// check if there are more results
-				if($count != null && $limit != null) {
-					$hasMoreResults = $count > $limit;
-				} else {
-					$hasMoreResults = false;
-				}
+				$hasMoreResults = $count > $limit;
 				
 				// add the needed variables into the response
 				$processedResponse['pageData'] = array(
@@ -469,6 +506,7 @@
 			$code = $response['code'];
 			$responseBody = json_decode($response['body'], true);
 			return $code != 200;
+			
 		}
 		
 		/**
@@ -522,27 +560,18 @@
 		 * @return array facebook data
 		 */
 		public static function transmit($call) {			
-			$method = $call['method'];
-			$params = $call['params'];
-			$relativeURL = $call['relative_url'];
-			$response = self::$sdk->api($relativeURL, $method, $params);
-			return $response;
-		} 
+			return self::$sdk->transmit($call);
+		}
 		
 		public static function initialize($config) {
-			if($config) {
+			
+			if(self::$sdk) {
 				
-				// only initalize the sdk if it's already
-				if(self::$sdk == null) {
-					self::$sdk = new Facebook($config);
-				}
 			} else {
-				
-				// if there's no sdk and no config
-				if(self::$sdk == null) {
-					throw new Exception("Config array with App Secret and App ID required to initialize");
-				}
+				self::$sdk = new SDK();
+				self::$sdk->initialize($config); 
 			}
+			
 		}
 		
 		/**
