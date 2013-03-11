@@ -368,6 +368,7 @@
 				if($isFirst) {
 					$startTime = time();
 				}
+				
 				$response = FB_Request_Monkey::transmit($formattedCall);
 				
 				$isFirst = false;
