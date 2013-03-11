@@ -9,21 +9,38 @@ require_once('../libs/fb_sdk/facebook.php');
 
 
 		
+/*
+$action = array(
+    'method' => 'GET',
+    'query' => 'fql',
+    'token' => 'AAAHCqE1ZBYBgBAPKcrI8oZCJcqWOBzCAGsmg3OiBLGZCHePMFApX6PDvZA7aRRZCGpiiNr0o7dOZB1xgcJqLZBro88OydIXlONPnRMqn8qLQgZDZD',
+    'params' => array(
+        'q' => array(
+            'query1' => 'SELECT uid2 FROM friend WHERE uid1 = me()',
+            'query2' => 'SELECT name FROM user WHERE uid IN (SELECT uid2 FROM #query1)',
+        ),
+    ),
+);		
+*/
 
-	$users = array(
-		array(
-			'token' => 'AAAHCqE1ZBYBgBAH9ueXV3tNT0dIYRGcjXtAj5lXELEBco8K35ZAnvTNlWz0tXDBBnkgZCkuGf7tnYJYhmkK8WKglGy98fykhcaEXWKgjQZDZD',
-			'id' => 100000669004970,
-		),
-		// valid
-		array(
-			'token' => 'AAAGClxpgGZBEBAB4OmfSfFZB9ifgVr7fZBppvKnrCXvZCeW7dHQLx8lJj4elp6g4ZCzV2IaF5EwnAV6Bgp0vvey0ulEqZAgIvBvFTGP5jSKQZDZD',
-			'id' => 645767981,
-		),
-	);	
+	$action = array(
+	    'method' => 'GET',
+	    'query' => 'fql',
+	    'token' => 'AAAHCqE1ZBYBgBAPKcrI8oZCJcqWOBzCAGsmg3OiBLGZCHePMFApX6PDvZA7aRRZCGpiiNr0o7dOZB1xgcJqLZBro88OydIXlONPnRMqn8qLQgZDZD',
+	    'params' => array(
+	        'q' => 'SELECT attachment,message FROM stream WHERE source_id = me() LIMIT(50)',
+	    ),
+	);		
+
+	$fbConfig = array(
+		'appId' => 495503087132696,
+		'secret' => '761f88f917529c3a30dbbd0cb60dac89',
+		'cookie' => true,
+	);
+	$results = FB_Request_Monkey::sendOne($action, $fbConfig);
 	
+	echo json_encode($results);
 	
-	// these are not switched
 	
 	
 	

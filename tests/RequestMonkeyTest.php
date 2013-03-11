@@ -954,6 +954,40 @@
 			
 		}
 		
+		public function testPagedUnbatchedResponseWithSingleLabel() {
+		
+			$test = array(
+				'entry_point' => 'send_many',
+				'configuration' => 'paged_unbatched_response',
+				'alterations' => array(
+					'input' => function($input) {
+						$input['actions'][0]['label'] = 'label1';
+						return $input;
+					},
+					'assert_input' => function($assertInput) {
+						$assertInput['expected'] = array(
+							'label1' => array(
+								array(
+									array(
+										'test1',
+									),
+								),
+								array(
+									array(
+										'test2',
+									),
+								),
+							),
+						);
+						return $assertInput;
+					},
+				),
+			);
+			
+			self::buildTest($test);
+			
+		}
+		
 		public function testPagedUnbatchedResponseWithMultiLabel() {
 		
 			$test = array(
