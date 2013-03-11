@@ -16,7 +16,7 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 	$accessToken = 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD';
 	
-	$actionCount = 20;
+	$actionCount = 50;
 	
 	$testAction = array(
 	    'method' => 'GET',
@@ -38,7 +38,7 @@ require_once('../libs/fb_sdk/facebook.php');
 
 	$results = FB_Request_Monkey::sendMany($actions, $fbConfig);
 	
-	echo json_encode($results);
+/* 	echo json_encode($results); */
 	
 	
 	
