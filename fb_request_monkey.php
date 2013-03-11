@@ -111,6 +111,7 @@
 			$callQueue = self::getCallQueue($actions);
 			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
 			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
+			echo json_encode($responseQueue);
 			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
 			return $processedResponses;
 		}
