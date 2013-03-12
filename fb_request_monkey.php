@@ -417,19 +417,13 @@
 			$count = null;
 			$limit = null;
 			
-			if($isBatched) {
-				
-				// check if there are errors in the response
-				$hasErrors = self::batchResponseHasErrors($response);
-				
-				// the wrapper that data goes in is json_encoded in 
-				// batch responses, but not in single responses
-				$responseBody = json_decode($response['body'], true);
-				// if its batched the count is wrapped in a 'body' key
-			} else {
-				
-				$responseBody = $response;
-			}
+			// check if there are errors in the response
+			$hasErrors = self::batchResponseHasErrors($response);
+			
+			// the wrapper that data goes in is json_encoded in 
+			// batch responses, but not in single responses
+			$responseBody = json_decode($response['body'], true);
+			// if its batched the count is wrapped in a 'body' key
 			
 			$processedResponse['hasErrors'] = $hasErrors;
 			
