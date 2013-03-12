@@ -13,7 +13,7 @@
 		
 		static $functionalBuilderConfig;
 		
-		static $verifyExpectedActual = false;
+		static $verifyExpectedActual = true;
 		
 		function __construct() {
 			self::$functionalBuilderConfig = self::getFunctionalBuilderConfig();
@@ -528,7 +528,6 @@
 				),
 				'assert_input' => array(
 					'expected' => array(
-/*
 						'data' => array(
 							array(
 								'test1',
@@ -540,7 +539,6 @@
 								'test3',
 							),
 						),
-*/
 					),
 				),
 			);
@@ -713,7 +711,6 @@
 			);
 		}
 
-/*
 		public function testAction() {
 			
 			$test = array(
@@ -724,6 +721,9 @@
 			return self::buildTest($test);
 		}
 
+		/**
+	     * @expectedException Exception
+	     */		    
 	    public function testActionWithInvalidParams() {
 			$test = array(
 				'configuration' => 'action',
@@ -846,7 +846,10 @@
 			self::buildTest($test);
 			
 		}
-								
+		
+		/**
+	     * @expectedException Exception
+	     */		    
 		public function testUnpagedResponseError() {
 			
 			$response = self::getResponseBuildingFunction();
@@ -1048,6 +1051,9 @@
 			self::buildTest($test);
 		}
 		
+		/**
+	     * @expectedException Exception
+	     */		    
 		public function testPagedBatchedResponseErrorWithBadCount() {
 			
 			$response = self::getResponseBuildingFunction();
@@ -1158,7 +1164,6 @@
 			return self::buildTest($test);
 			
 		}	
-*/
 		
 		public function testNullResponses() {
 			

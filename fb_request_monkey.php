@@ -78,7 +78,7 @@
 				$processedResponses = array_merge($processedResponses, $overflowProcessedResponses);
 			}
 			self::checkDataCount($processedResponses, $allowErrors);
-			return array();
+			return $results;
 		}
 		
 		/**
@@ -110,11 +110,8 @@
 		public static function getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken) {
 			$actionCount = count($actions);
 			$responseQueue = self::getResponseQueueFromActions($actions, $failsafeToken);
-			return array();
-/*
 			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
 			return $processedResponses;
-*/
 		}
 		
 		/**
@@ -133,7 +130,70 @@
 			$callQueue = self::getCallQueue($actions);
 			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
 			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
+			$responseQueue = self::fillInMissingData($responseQueue, $failsafeToken);
 			return $responseQueue;
+		}
+		
+		/**
+		 * fillInMissingData function.
+		 * 
+		 * If there are more request in a batch than facebook can handle
+		 * at a particular time, they return null instead of the
+		 * this function handle resending request to get that missing
+		 * data
+		 * 
+		 * @access public
+		 * @static
+		 * @param mixed $responseQueue
+		 * @return void
+		 */
+		public static function fillInMissingData($responseQueue, $failsafeToken) {
+			$fillInActions = self::getFillInActionsFromResponseQueue($responseQueue);
+			$responseQueue = self::addDataFromFillInActionsToResponseQueue($responseQueue, $fillInActions, $failsafeToken);
+			return $responseQueue;
+		}
+		
+		public static function addDataFromFillInActionsToResponseQueue($responseQueue, $fillInActions, $failsafeToken) {
+			if(count($fillInActions) > 0) {
+				$fillInResponseQueue = self::getResponseQueueFromActions($fillInActions, $failsafeToken);
+				__::map($fillInResponseQueue, function($responsePackage) use(&$responseQueue){
+					$actions = $responsePackage['actions'];
+					$batches = $responsePackage['batches'];
+					__::map($batches, function($batch, $currentBatchIndex)use(&$responseQueue, $actions){
+						$associatedAction = $actions[$currentBatchIndex];
+						$responseIndex = $associatedAction['label'][0];
+						$batchIndex = $associatedAction['label'][1];
+						$responseQueue[$responseIndex]['batches'][$batchIndex] = $batch;
+					});
+				});
+			}
+			return $responseQueue;
+		}
+		
+		public static function getFillInActionsFromResponseQueue($responseQueue) {
+			$fillInActions = array();
+			__::chain($responseQueue)
+				->map(function($responsePackage, $responseIndex) use(&$fillInActions){
+					$actions = $responsePackage['actions'];
+					$batches = $responsePackage['batches'];
+					__::map($batches, function($batch, $batchIndex) use($actions, &$fillInActions, $responseIndex){
+						if($batch == null) {
+							$fillInActions = FB_Request_Monkey::addFillInActionForNullBatch($responseIndex, $batchIndex, $fillInActions, $actions);
+						}
+					});
+				});
+			
+			return $fillInActions;
+		}
+		
+		public static function addFillInActionForNullBatch($responseIndex, $batchIndex, $fillInActions, $actions) {
+			$fillInAction = $actions[$batchIndex];
+			$fillInAction['label'] = array(
+				$responseIndex,
+				$batchIndex,
+			);
+			array_push($fillInActions, $fillInAction);
+			return $fillInActions;
 		} 
 		
 		/**
