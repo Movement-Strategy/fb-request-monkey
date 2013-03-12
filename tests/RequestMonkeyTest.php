@@ -997,14 +997,10 @@
 						$assertInput['expected'] = array(
 							'label1' => array(
 								array(
-									array(
-										'test1',
-									),
+									'stuff1',
 								),
 								array(
-									array(
-										'test2',
-									),
+									'stuff2',
 								),
 							),
 						);
@@ -1032,14 +1028,10 @@
 							'type1' => array(
 								'label1' => array(
 									array(
-										array(
-											'test1',
-										),
+										'stuff1',
 									),
 									array(
-										array(
-											'test2',
-										),
+										'stuff2',
 									),
 								),
 							),

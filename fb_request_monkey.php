@@ -257,7 +257,6 @@
 								
 								// get the action associated
 								$action = $actions[$responseIndex];
-								print_r($action);
 								$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $isBatched, $action, $allowErrors);
 								$responseIndex++;
 								return $processedResponse;
