@@ -240,10 +240,7 @@
 					
 					// get all of the actions
 					$actions = $response['actions'];
-					
-					// if its a batch response
-					$isBatched = $response['isBatched'];
-					
+										
 					// get all of the responses in this batch
 					$allResponses = $response['response'];
 					
@@ -251,11 +248,11 @@
 					return __::chain($allResponses)
 						
 						// iterate over the responses
-						->map(function($batchResponse) use(&$responseIndex, $actions, $isBatched, $allowErrors) {
+						->map(function($batchResponse) use(&$responseIndex, $actions, $allowErrors) {
 							
 							// get the action associated
 							$action = $actions[$responseIndex];
-							$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $isBatched, $action, $allowErrors);
+							$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $action, $allowErrors);
 							$responseIndex++;
 							return $processedResponse;
 						})
@@ -359,12 +356,9 @@
 			$output = __::map($formattedCallQueue, function($formattedCall) use($actions, &$isFirst, &$startTime) {
 				
 				// is this a batch request or not
-				$isBatched = isset($formattedCall['params']['batch']);
-								
 				$response = FB_Request_Monkey::transmit($formattedCall);
 				$output =  array(
 					'response' => $response,
-					'isBatched' => $isBatched,
 					'actions' => $formattedCall['actions'],
 				);
 				return $output;
@@ -385,7 +379,7 @@
 		 * @param array $action
 		 * @return array
 		 */
-		public static function processSingleResponse($response, $isBatched, $action, $allowErrors) {
+		public static function processSingleResponse($response, $action, $allowErrors) {
 			$processedResponse = array();
 			$processedResponse['action'] = $action;
 			$hasOneItem = false;
