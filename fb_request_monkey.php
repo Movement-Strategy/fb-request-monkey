@@ -355,28 +355,13 @@
 		 * @return array
 		 */
 		public static function sendAllCalls($formattedCallQueue, $actions) {
-			$callCount = count($formattedCallQueue);
-			$actionCount = count($actions);
-			$test = array(
-				'callCount' => $callCount,
-				'actionCount' => $actionCount,
-			);
-			array_push(FB_Request_Monkey::$testArray, $test);
 			
-			$isFirst = true;
-			$startTime = microtime(true);
-			$endTime = 0;
 			$output = __::map($formattedCallQueue, function($formattedCall) use($actions, &$isFirst, &$startTime) {
 				
 				// is this a batch request or not
 				$isBatched = isset($formattedCall['params']['batch']);
-				
-				if($isFirst) {
-					$startTime = time();
-				}
-				
+								
 				$response = FB_Request_Monkey::transmit($formattedCall);
-				$isFirst = false;
 				$output =  array(
 					'response' => $response,
 					'isBatched' => $isBatched,
@@ -384,12 +369,6 @@
 				);
 				return $output;
 			});
-			$endTime = microtime(true);
-			$difference = $endTime - $startTime;
-			$test = array(
-				'time_length' => $difference,
-			);
-			array_push(FB_Request_Monkey::$testArray, $test);
 			return $output;
 		}
 				
