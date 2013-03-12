@@ -244,32 +244,23 @@
 					// if its a batch response
 					$isBatched = $response['isBatched'];
 					
-					if($isBatched) {
+					// get all of the responses in this batch
+					$allResponses = $response['response'];
+					
+					$responseIndex = 0;
+					return __::chain($allResponses)
 						
-						// get all of the responses in this batch
-						$allResponses = $response['response'];
-						
-						$responseIndex = 0;
-						return __::chain($allResponses)
+						// iterate over the responses
+						->map(function($batchResponse) use(&$responseIndex, $actions, $isBatched, $allowErrors) {
 							
-							// iterate over the responses
-							->map(function($batchResponse) use(&$responseIndex, $actions, $isBatched, $allowErrors) {
-								
-								// get the action associated
-								$action = $actions[$responseIndex];
-								$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $isBatched, $action, $allowErrors);
-								$responseIndex++;
-								return $processedResponse;
-							})
-						->value();
+							// get the action associated
+							$action = $actions[$responseIndex];
+							$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $isBatched, $action, $allowErrors);
+							$responseIndex++;
+							return $processedResponse;
+						})
+					->value();
 					// if its a single response
-					} else {
-						$action = $actions[0];
-						$response = $response['response'];
-						
-						// return the single response so they who structure can always be flattened
-						return array(FB_Request_Monkey::processSingleResponse($response, $isBatched, $action, $allowErrors));
-					}
 				})
 			->flatten(true)
 			->value();
