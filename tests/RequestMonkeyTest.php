@@ -528,6 +528,7 @@
 				),
 				'assert_input' => array(
 					'expected' => array(
+/*
 						'data' => array(
 							array(
 								'test1',
@@ -539,6 +540,7 @@
 								'test3',
 							),
 						),
+*/
 					),
 				),
 			);

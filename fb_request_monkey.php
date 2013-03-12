@@ -78,7 +78,7 @@
 				$processedResponses = array_merge($processedResponses, $overflowProcessedResponses);
 			}
 			self::checkDataCount($processedResponses, $allowErrors);
-			return $results;
+			return array();
 		}
 		
 		/**
@@ -110,8 +110,11 @@
 		public static function getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken) {
 			$actionCount = count($actions);
 			$responseQueue = self::getResponseQueueFromActions($actions, $failsafeToken);
+			return array();
+/*
 			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
 			return $processedResponses;
+*/
 		}
 		
 		/**
