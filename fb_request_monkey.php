@@ -766,45 +766,11 @@
 		public static function formatCallQueue($callQueue, $failsafeToken) {
 			
 			return __::map($callQueue, function($call) use($failsafeToken){
-				
 				// if there are more than one actions in the call
-				return FB_Request_Monkey::formatMultiActionCall($call, $failsafeToken);
+				return FB_Request_Monkey::formatCall($call, $failsafeToken);
 			});
 		}
-				
-		/**
-		 * formatSingleActionCall function.
-		 * 
-		 * @access public
-		 * @static
-		 * @param array $call
-		 * @return array
-		 */
-		public static function formatSingleActionCall($call) {
-			
-			$formattedCall = $call[0];
-			
-			// if the params are sent get them, if not get an empty array
-			$params = isset($formattedCall['params']) ? $formattedCall['params'] : array();
-			
-			// move the access token into the params
-			// per facebooks requirements
-			$params['access_token'] = $formattedCall['access_token'];
-			
-			// unset the access token outside of the params
-			unset($formattedCall['access_token']);
-			
-			$params = FB_Request_Monkey::handleBoundaryQueriesInParams($formattedCall['relative_url'], $params);
-			
-			// get and format the relative URL
-			$formattedCall['relative_url'] = FB_Request_Monkey::formatRelativeURL($formattedCall['relative_url']);
-			
-			// reset the params	
-			$formattedCall['params'] = $params;
-			$formattedCall['actions'] = $call;
-			return $formattedCall;
-		}
-			
+							
 		/**
 		 * formatMultiActionCall function.
 		 * 
@@ -814,7 +780,7 @@
 		 * @param string $failsafeToken
 		 * @return array
 		 */
-		public static function formatMultiActionCall($call, $failsafeToken) {
+		public static function formatCall($call, $failsafeToken) {
 			return array(
 				'method' => 'POST',
 				'relative_url' => '',
