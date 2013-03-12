@@ -1,7 +1,6 @@
 <?php
 	
 	require_once('sdk.php');
-/* 	 */
 	class FB_Request_Monkey {
 	
 		const MAX_ITEMS_IN_BATCH = 50;
