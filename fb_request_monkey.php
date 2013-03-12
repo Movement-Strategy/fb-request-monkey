@@ -78,7 +78,7 @@
 				$processedResponses = array_merge($processedResponses, $overflowProcessedResponses);
 			}
 			self::checkDataCount($processedResponses, $allowErrors);
-			return array();
+			return $results;
 		}
 		
 		/**

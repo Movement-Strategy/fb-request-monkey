@@ -360,8 +360,6 @@
 				),
 			);
 		}
-		
-		
 								
 		public function getBatchActionSingleCallConfiguration($action) {
 			return array(
@@ -581,7 +579,6 @@
 				),
 			);
 		}
-
 		
 		public function getPagedBatchedResponseConfiguration($action, $response) {
 			$actions = array(
@@ -663,7 +660,6 @@
 				),
 			);
 		}
-	
 
 		public function getMultipleUnpagedBatchedResponseConfiguration($action, $response) {
 			
@@ -718,7 +714,6 @@
 			);
 		}
 
-/*
 		public function testSingleActionSingleCall() {
 			
 			$test = array(
@@ -728,10 +723,11 @@
 			
 			return self::buildTest($test);
 		}
-*/
-		 	     
-/*
-		public function testSingleActionSingleCallWithInvalidParams() {
+
+		/**
+	     * @expectedException Exception
+	     */		
+	    public function testSingleActionSingleCallWithInvalidParams() {
 			$test = array(
 				'configuration' => 'unpaged_unbatched_response',
 				'entry_point' => 'send_many',
@@ -925,10 +921,11 @@
 			
 			self::buildTest($test);
 		}
-*/
-				 	     
-/*
-		public function testPagedUnbatchedResponseWithBadCount() {
+		
+		/**
+	     * @expectedException Exception
+	     */		
+	    public function testPagedUnbatchedResponseWithBadCount() {
 			$action = self::getActionBuildingFunction();
 			$response = self::getResponseBuildingFunction();
 			$test = array(
@@ -1045,9 +1042,10 @@
 			
 			self::buildTest($test);
 		}
-*/
 		
-/*
+		/**
+	     * @expectedException Exception
+	     */		
 		public function testUnpagedBatchedResponseError() {
 			
 			$response = self::getResponseBuildingFunction();
@@ -1314,10 +1312,10 @@
 			
 			self::buildTest($test);
 		}
-*/
-	    
-/*
-	
+		
+		/**
+	     * @expectedException Exception
+	     */		
 		public function testPagedBatchedResponseErrorWithBadCount() {
 			
 			$response = self::getResponseBuildingFunction();
@@ -1427,8 +1425,8 @@
 			return self::buildTest($test);
 			
 		}
-*/
 		
+/*
 		public function testUnpagedBatchedNullResponse() {
 			
 			$test = array(
@@ -1438,6 +1436,7 @@
 			
 			self::buildTest($test);
 		}
+*/
 		
 		
 	}
