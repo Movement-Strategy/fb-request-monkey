@@ -324,7 +324,6 @@
 		 * @return void
 		 */
 		public static function recursivelyAddLabelsToResults($labels, $resultToAdd, $currentLevel) {
-			
 			// get the current label
 			$currentLabel = array_shift($labels);
 			// if there are any labels left
@@ -334,7 +333,6 @@
 				if(!isset($currentLevel[$currentLabel])) {
 					$currentLevel[$currentLabel] = array();
 				}
-				
 				// because there are more labels, call the function again
 				$currentLevel[$currentLabel] = self::recursivelyAddLabelsToResults($labels, $resultToAdd, $currentLevel[$currentLabel]);
 				return $currentLevel;
@@ -808,7 +806,6 @@
 				return $relativeURL;
 			}
 		}
-		
 		
 		/**
 		 * getBatchParams function.

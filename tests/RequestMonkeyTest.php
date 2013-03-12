@@ -343,10 +343,15 @@
 				'assert_input' => array(
 					'expected' => array(
 						array(
-							'relative_url' => '/me',
-							'method' => 'GET',
+							'method' => 'POST',
+							'relative_url' => '',
 							'params' => array(
-								'access_token' => 'test',
+								'batch' => array(
+									array(
+										'method' => 'GET',
+										'relative_url' => '/me?access_token=test',
+									),
+								),
 							),
 							'actions' => array(
 								array(
@@ -414,9 +419,13 @@
 				'input' => array(
 					'responses' => array(
 						$response(
-							'unpaged_unbatched', 
+							'unpaged_batched', 
 							array(
-								'test1' => 'test',
+								array(
+									'batch_data' => array(
+										'test1', 
+									),
+								),
 							)
 						),
 					),
@@ -430,7 +439,7 @@
 					'expected' => array(
 						'data' => array(
 							array(
-								'test1' => 'test',
+								'test1',
 							),
 						),
 					),
@@ -755,14 +764,12 @@
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
-						$assertInput['expected'][0]['relative_url'] = '';
+						$assertInput['expected'][0]['params']['batch'][0]['relative_url'] = '/?access_token=test';
 						$assertInput['expected'][0]['actions'][0]['relative_url'] = '';
 						return $assertInput;
 					}
 				),
 			);
-							
-							
 			return self::buildTest($test);
 		}
 		
@@ -819,9 +826,16 @@
 					'assert_input' => function($assertInput) {
 						$assertInput['expected'] = 	array(
 							array(
-								'relative_url' => '/debug_token',
-								'method' => 'GET',
-								'params' => array(),
+								'relative_url' => '',
+								'method' => 'POST',
+								'params' => array(
+									'batch' => array(
+										array(
+											'method' => 'GET',
+											'relative_url' => '/debug_token',
+										),
+									),
+								),
 								'actions' => array(
 									array(
 										'relative_url' => 'debug_token',
