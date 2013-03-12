@@ -678,12 +678,16 @@
 				'entry_point' => 'action',
 				'alterations' => array(
 					'input' => function($input) {
+						
 						$input['actions'][0]['query'] = '';
+						unset($input['actions'][1]);
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
 						$assertInput['expected'][0]['params']['batch'][0]['relative_url'] = '/?access_token=test';
+						unset($assertInput['expected'][0]['params']['batch'][1]);
 						$assertInput['expected'][0]['actions'][0]['relative_url'] = '';
+						unset($assertInput['expected'][0]['actions'][1]);
 						return $assertInput;
 					}
 				),
@@ -773,6 +777,7 @@
 			
 		}
 								
+/*
 		public function testUnpagedResponse() {
 			
 			$test = array(
@@ -782,7 +787,7 @@
 			
 			self::buildTest($test);
 		}
-		
+*/
 		/**
 	     * @expectedException Exception
 	     */		
@@ -831,6 +836,7 @@
 			self::buildTest($test);
 		}
 		
+/*
 		public function testUnPagedResponseWithSingleLabel() {
 			
 			$test = array(
@@ -896,6 +902,7 @@
 			
 			self::buildTest($test);
 		}
+*/
 		
 		public function testUnpagedResponseErrorWithAllowErrors() {
 			

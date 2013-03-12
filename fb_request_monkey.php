@@ -762,11 +762,7 @@
 		 * @return string
 		 */
 		public static function formatRelativeURL($relativeURL) {
-			if($relativeURL != '') {
-				return "/$relativeURL";
-			} else {
-				return $relativeURL;
-			}
+			return "/$relativeURL";
 		}
 		
 		/**
@@ -789,7 +785,6 @@
 				$params = isset($action['params']) ? $action['params'] : array();
 				$method = $action['method'];
 				$relativeURL = $action['relative_url'];
-				
 				// add the access token to the params
 				$params['access_token'] = $action['access_token'];
 				$params = FB_Request_Monkey::handleBoundaryQueriesInParams($relativeURL, $params);
