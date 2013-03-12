@@ -407,15 +407,9 @@
 			
 			$processedBatch = self::handleErrors($processedBatch, $batch, $action, $allowErrors);
 			
-			
-			
 			// certain types of requests have their data stored in a data key, others don't
 			// this handles this different behavior
-			if(isset($body['data'])) {
-				$data = $body['data'];
-			} else {
-				$data = $body;
-			}
+			$data = isset($body['data']) ? $body['data'] : $body;
 			
 			// if there's only one item, calling count on the data array will return
 			// an incorrect results, 
