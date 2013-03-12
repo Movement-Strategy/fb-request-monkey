@@ -777,17 +777,6 @@
 			
 		}
 								
-/*
-		public function testUnpagedResponse() {
-			
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_response',
-			);
-			
-			self::buildTest($test);
-		}
-*/
 		/**
 	     * @expectedException Exception
 	     */		
@@ -835,75 +824,7 @@
 			
 			self::buildTest($test);
 		}
-		
-/*
-		public function testUnPagedResponseWithSingleLabel() {
-			
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_response',
-				'alterations' => array(
-					'input' => function($input) {
-						$input['actions'][0]['label'] = 'label1';
-						$input['actions'][1]['label'] = 'label2';
-						return $input;
-					},
-					'assert_input' => function($assertInput) {
-						$assertInput['expected'] = array(
-							'label1' => array(
-								array(
-									'test1',
-								),
-							),
-							'label2' => array(
-								array(
-									'test2',
-								),
-							),
-						);
-						return $assertInput;
-					},
-				),
-			);
-			
-			self::buildTest($test);
-		}
-		
-		public function testUnpagedResponseWithMultiLabel() {
-			
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_response',
-				'alterations' => array(
-					'input' => function($input) {
-						$input['actions'][0]['label'] = array('type1', 'label1');
-						$input['actions'][1]['label'] = array('type1', 'label2');
-						return $input;
-					},
-					'assert_input' => function($assertInput) {
-						$assertInput['expected'] = array(
-							'type1' => array(
-								'label1' => array(
-									array(
-										'test1',
-									),
-								),
-								'label2' => array(
-									array(
-										'test2',
-									),
-								),
-							),
-						);
-						return $assertInput;
-					},
-				),
-			);
-			
-			self::buildTest($test);
-		}
-*/
-		
+				
 		public function testUnpagedResponseErrorWithAllowErrors() {
 			
 			$response = self::getResponseBuildingFunction();
@@ -1171,19 +1092,6 @@
 			
 			return self::buildTest($test);
 			
-		}
-		
-/*
-		public function testUnpagedBatchedNullResponse() {
-			
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_batched_null_response',
-			);
-			
-			self::buildTest($test);
-		}
-*/
-		
+		}		
 		
 	}

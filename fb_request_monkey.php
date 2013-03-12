@@ -387,6 +387,7 @@
 		 * @return array
 		 */
 		public static function processBatch($batch, $action, $allowErrors) {
+			
 			$processedBatch = array();
 			$processedBatch['action'] = $action;
 			$hasOneItem = false;
