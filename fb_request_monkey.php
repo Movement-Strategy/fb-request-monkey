@@ -768,11 +768,7 @@
 			return __::map($callQueue, function($call) use($failsafeToken){
 				
 				// if there are more than one actions in the call
-				if(count($call) > 1) {
-					return FB_Request_Monkey::formatMultiActionCall($call, $failsafeToken);
-				} else {
-					return FB_Request_Monkey::formatSingleActionCall($call);
-				}
+				return FB_Request_Monkey::formatMultiActionCall($call, $failsafeToken);
 			});
 		}
 				
