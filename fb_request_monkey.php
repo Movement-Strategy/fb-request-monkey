@@ -241,7 +241,7 @@
 					// get all of the actions
 					$actions = $response['actions'];
 										
-					// get all of the responses in this batch
+					// get all of the batches in this response
 					$allResponses = $response['response'];
 					
 					$responseIndex = 0;
@@ -353,17 +353,17 @@
 		 */
 		public static function sendAllCalls($formattedCallQueue, $actions) {
 			
-			$output = __::map($formattedCallQueue, function($formattedCall) use($actions, &$isFirst, &$startTime) {
+			$responsePackages = __::map($formattedCallQueue, function($formattedCall) use($actions) {
 				
 				// is this a batch request or not
 				$response = FB_Request_Monkey::transmit($formattedCall);
-				$output =  array(
+				$responsePackage =  array(
 					'response' => $response,
 					'actions' => $formattedCall['actions'],
 				);
-				return $output;
+				return $responsePackage;
 			});
-			return $output;
+			return $responsePackages;
 		}
 				
 		/**
