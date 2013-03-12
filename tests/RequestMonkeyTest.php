@@ -314,8 +314,7 @@
 			$response = self::getResponseBuildingFunction();
 			
 			return array(
-				'single_action_single_call' => self::getSingleActionSingleCallConfiguration($action),
-				'batch_action_single_call' => self::getBatchActionSingleCallConfiguration($action),
+				'action' => self::getActionConfiguration($action),
 				'send_one' => self::getSendOneConfiguration($action, $response),
 				'unpaged_response' => self::getUnpagedResponseConfiguration($action, $response),
 				'paged_batched_response' => self::getPagedBatchedResponseConfiguration($action, $response),
@@ -325,43 +324,7 @@
 			
 		}
 
-		public function getSingleActionSingleCallConfiguration($action) {
-
-			return array(
-				'input' => array(
-					'actions' => array(
-						$action(
-							'me'
-						),
-					),
-				),
-				'assert_input' => array(
-					'expected' => array(
-						array(
-							'method' => 'POST',
-							'relative_url' => '',
-							'params' => array(
-								'batch' => array(
-									array(
-										'method' => 'GET',
-										'relative_url' => '/me?access_token=test',
-									),
-								),
-							),
-							'actions' => array(
-								array(
-									'relative_url' => 'me',
-									'method' => 'GET',
-									'access_token' => 'test',
-								),
-							),
-						),
-					),
-				),
-			);
-		}
-								
-		public function getBatchActionSingleCallConfiguration($action) {
+		public function getActionConfiguration($action) {
 			return array(
 				'input' => array(
 					'actions' => array(
@@ -678,10 +641,10 @@
 			);
 		}
 
-		public function testSingleActionSingleCall() {
+		public function testAction() {
 			
 			$test = array(
-				'configuration' => 'single_action_single_call',
+				'configuration' => 'action',
 				'entry_point' => 'action',
 			);
 			
@@ -691,9 +654,9 @@
 		/**
 	     * @expectedException Exception
 	     */		
-	    public function testSingleActionSingleCallWithInvalidParams() {
+	    public function testActionWithInvalidParams() {
 			$test = array(
-				'configuration' => 'unpaged_unbatched_response',
+				'configuration' => 'action',
 				'entry_point' => 'send_many',
 				'alterations' => array(
 					'input' => function($input) {
@@ -709,9 +672,9 @@
 			return self::buildTest($test);
 		}
 		
-		public function testSingleActionSingleCallWithEmptyString() {
+		public function testActionWithEmptyString() {
 			$test = array(
-				'configuration' => 'single_action_single_call',
+				'configuration' => 'action',
 				'entry_point' => 'action',
 				'alterations' => array(
 					'input' => function($input) {
@@ -728,10 +691,10 @@
 			return self::buildTest($test);
 		}
 		
-		public function testBatchActionSingleCallWithActionName() {
+		public function testActionWithActionName() {
 			
 			$test = array(
-				'configuration' => 'batch_action_single_call',
+				'configuration' => 'action',
 				'entry_point' => 'action',
 				'alterations' => array(
 					'input' => function($input) {
@@ -749,9 +712,9 @@
 			return self::buildTest($test);
 		}
 		
-		public function testBatchActionSingleCallWithFailsafeToken() {
+		public function testActionWithFailsafeToken() {
 			$test = array(
-				'configuration' => 'batch_action_single_call',
+				'configuration' => 'action',
 				'entry_point' => 'action',
 				'alterations' => array(
 					'input' => function($input) {
@@ -768,14 +731,15 @@
 			return self::buildTest($test);
 		}
 				
-		public function testSingleActionSingleCallWithBoundaryQuery() {
+		public function testActionWithBoundaryQuery() {
 			
 			$test = array(
-				'configuration' => 'single_action_single_call',
+				'configuration' => 'action',
 				'entry_point' => 'action',
 				'alterations' => array(
 					'input' => function($input) {
 						$input['actions'][0]['query'] = 'debug_token';
+						unset($input['actions'][1]);
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
@@ -808,18 +772,7 @@
 			self::buildTest($test);
 			
 		}
-		
-		public function testBatchActionSingleCall() {
-			
-			$test = array(
-				'configuration' => 'batch_action_single_call',
-				'entry_point' => 'action',
-			);
-			
-			return self::buildTest($test);
-			
-		}
-						
+								
 		public function testUnpagedResponse() {
 			
 			$test = array(
