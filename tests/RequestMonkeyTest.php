@@ -316,15 +316,10 @@
 			return array(
 				'single_action_single_call' => self::getSingleActionSingleCallConfiguration($action),
 				'batch_action_single_call' => self::getBatchActionSingleCallConfiguration($action),
-
-				'unpaged_unbatched_response' => self::getUnpagedUnbatchedResponseConfiguration($action, $response),
-			
-				'paged_unbatched_response' => self::getPagedUnbatchedResponseConfiguration($action, $response),
-
-				'unpaged_batched_response' => self::getUnpagedBatchedResponseConfiguration($action, $response),
+				'send_one' => self::getSendOneConfiguration($action, $response),
+				'unpaged_response' => self::getUnpagedResponseConfiguration($action, $response),
 				'paged_batched_response' => self::getPagedBatchedResponseConfiguration($action, $response),
  				'multiple_unpaged_batched_response' => self::getMultipleUnpagedBatchedResponseConfiguration($action, $response),
- 				'unpaged_batched_null_response' => self::getUnpagedBatchedNullResponseConfiguration($action, $response),
  				'base_initialize' =>  self::getBaseInitializeConfiguration(),
 			);
 			
@@ -413,40 +408,7 @@
 				),
 			);
 		}
-		
-		public function getUnpagedUnbatchedResponseConfiguration($action, $response) {
-			return array(
-				'input' => array(
-					'responses' => array(
-						$response(
-							'unpaged_batched', 
-							array(
-								array(
-									'batch_data' => array(
-										'test', 
-									),
-								),
-							)
-						),
-					),
-					'actions' => array(
-						$action(
-							'me'
-						),
-					),			
-				),
-				'assert_input' => array(
-					'expected' => array(
-						'data' => array(
-							array(
-								'test',
-							),
-						),
-					),
-				),
-			);
-		}
-		
+				
 		public function getPagedUnbatchedResponseConfiguration($action, $response) {
 						
 			$actions = array(
@@ -505,7 +467,7 @@
 			
 		}
 		
-		public function getUnpagedBatchedResponseConfiguration($action, $response) {
+		public function getUnpagedResponseConfiguration($action, $response) {
 			return array(
 				'input' => array(
 					'responses' => array(
@@ -549,7 +511,7 @@
 			);
 		}
 		
-		public function getUnpagedBatchedNullResponseConfiguration($action, $response) {
+		public function getSendOneConfiguration($action, $response) {
 			return array(
 				'input' => array(
 					'responses' => array(
@@ -561,11 +523,6 @@
 										'test1', 
 									),
 								),
-								array(
-									'batch_data' => array(
-										'test2', 
-									),
-								),
 							)
 						),
 					),
@@ -573,28 +530,20 @@
 						$action(
 							'me'
 						),
-						$action(
-							'me'
-						),
 					),			
 				),
 				'assert_input' => array(
 					'expected' => array(
-/*
 						'data' => array(
 							array(
 								'test1',
 							),
-							array(
-								'test2',
-							),
 						),
-*/
 					),
 				),
 			);
 		}
-		
+				
 		public function getPagedBatchedResponseConfiguration($action, $response) {
 			$actions = array(
 			);
@@ -870,186 +819,12 @@
 			return self::buildTest($test);
 			
 		}
-		
-		public function testUnpagedUnbatchedResponse() {
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_unbatched_response',
-			);
-			
-			self::buildTest($test);
-		}
-
-		public function testUnpagedUnbatchedResponseWithSingleLabel() {
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_unbatched_response',
-				'alterations' => array(
-					'input' => function($input) {
-						$input['actions'][0]['label'] = 'test_label';
-						return $input;
-					},
-					'assert_input' => function($assertInput) {
-						$assertInput['expected'] = array(
-							'test_label' => array(
-								array(
-									'test',
-								),
-							),
-						);
-						return $assertInput;
-					},
-				),
-			);
-			
-			self::buildTest($test);
-		}
-		
-		public function testUnpagedUnbatchedResponseWithMultiLabel() {
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_unbatched_response',
-				'alterations' => array(
-					'input' => function($input) {
-						$input['actions'][0]['label'] = array('label1', 'label2');
-						return $input;
-					},
-					'assert_input' => function($assertInput) {
-						$assertInput['expected'] = array(
-							'label1' => array(
-								'label2' => array(
-									array(
-										'test',
-									),
-								),
-							),
-						);
-						return $assertInput;
-					},
-				),
-			);
-			
-			$test = self::buildTest($test);
-		}
-				
-		public function testPagedUnbatchedResponse() {
-			
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'paged_unbatched_response',
-			);
-			
-			self::buildTest($test);
-		}
-		
-		/**
-	     * @expectedException Exception
-	     */		
-	    public function testPagedUnbatchedResponseWithBadCount() {
-			$action = self::getActionBuildingFunction();
-			$response = self::getResponseBuildingFunction();
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'paged_unbatched_response',
-				'alterations' => array(
-					'input' => function($input) use($response, $action) {
-						$input['responses'] = array(
-							$response(
-								'paged_unbatched', 
-								array(
-									'test1',
-								),
-								
-								1, // limit 
-								3 // count	
-							),
-							$response(
-								'unpaged_unbatched',
-								array()
-							),
-						);
-												
-						$input['actions'] = array(
-							$action(
-								'me'
-							),
-						);
 						
-						return $input;
-					}
-				),
-			);
-			
-			self::buildTest($test);
-		}
-
-		public function testPagedUnbatchedResponseWithSingleLabel() {
-		
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'paged_unbatched_response',
-				'alterations' => array(
-					'input' => function($input) {
-						$input['actions'][0]['label'] = 'label1';
-						return $input;
-					},
-					'assert_input' => function($assertInput) {
-						$assertInput['expected'] = array(
-							'label1' => array(
-								array(
-									'stuff1',
-								),
-								array(
-									'stuff2',
-								),
-							),
-						);
-						return $assertInput;
-					},
-				),
-			);
-			
-			self::buildTest($test);
-			
-		}
-				
-		public function testPagedUnbatchedResponseWithMultiLabel() {
-		
-			$test = array(
-				'entry_point' => 'send_many',
-				'configuration' => 'paged_unbatched_response',
-				'alterations' => array(
-					'input' => function($input) {
-						$input['actions'][0]['label'] = array('type1', 'label1');
-						return $input;
-					},
-					'assert_input' => function($assertInput) {
-						$assertInput['expected'] = array(
-							'type1' => array(
-								'label1' => array(
-									array(
-										'stuff1',
-									),
-									array(
-										'stuff2',
-									),
-								),
-							),
-						);
-						return $assertInput;
-					},
-				),
-			);
-			
-			self::buildTest($test);
-			
-		}
-				
-		public function testUnpagedBatchedResponse() {
+		public function testUnpagedResponse() {
 			
 			$test = array(
 				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_batched_response',
+				'configuration' => 'unpaged_response',
 			);
 			
 			self::buildTest($test);
@@ -1058,12 +833,12 @@
 		/**
 	     * @expectedException Exception
 	     */		
-		public function testUnpagedBatchedResponseError() {
+		public function testUnpagedResponseError() {
 			
 			$response = self::getResponseBuildingFunction();
 			$action = self::getActionBuildingFunction();
 			$test = array(
-				'configuration' => 'unpaged_batched_response',
+				'configuration' => 'unpaged_response',
 				'entry_point' => 'send_many',
 				'alterations' => array(
 					'input' => function($input) use($response, $action) {
@@ -1103,11 +878,11 @@
 			self::buildTest($test);
 		}
 		
-		public function testUnPagedBatchedResponseWithSingleLabel() {
+		public function testUnPagedResponseWithSingleLabel() {
 			
 			$test = array(
 				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_batched_response',
+				'configuration' => 'unpaged_response',
 				'alterations' => array(
 					'input' => function($input) {
 						$input['actions'][0]['label'] = 'label1';
@@ -1135,11 +910,11 @@
 			self::buildTest($test);
 		}
 		
-		public function testUnpagedBatchedResponseWithMultiLabel() {
+		public function testUnpagedResponseWithMultiLabel() {
 			
 			$test = array(
 				'entry_point' => 'send_many',
-				'configuration' => 'unpaged_batched_response',
+				'configuration' => 'unpaged_response',
 				'alterations' => array(
 					'input' => function($input) {
 						$input['actions'][0]['label'] = array('type1', 'label1');
@@ -1169,12 +944,12 @@
 			self::buildTest($test);
 		}
 		
-		public function testUnpagedBatchedResponseErrorWithAllowErrors() {
+		public function testUnpagedResponseErrorWithAllowErrors() {
 			
 			$response = self::getResponseBuildingFunction();
 			$action = self::getActionBuildingFunction();
 			$test = array(
-				'configuration' => 'unpaged_batched_response',
+				'configuration' => 'unpaged_response',
 				'entry_point' => 'send_many',
 				'alterations' => array(
 					'input' => function($input) use($response, $action) {
@@ -1399,7 +1174,7 @@
 		public function testSendOne() {
 			$test = array(
 				'entry_point' => 'send_one',
-				'configuration' => 'unpaged_unbatched_response',
+				'configuration' => 'send_one',
 			);
 			
 			self::buildTest($test);
