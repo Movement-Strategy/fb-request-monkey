@@ -398,7 +398,7 @@
 			$limit = null;
 			
 			// check if there are errors in the response
-			$hasErrors = self::batchResponseHasErrors($batch);
+			$hasErrors = self::batchHasErrors($batch);
 			
 			// the wrapper that data goes in is json_encoded in 
 			// batch responses, but not in single responses
@@ -475,11 +475,10 @@
 		 * @param array $response
 		 * @return void
 		 */
-		public static function batchResponseHasErrors($response) {
-			$code = $response['code'];
-			$responseBody = json_decode($response['body'], true);
+		public static function batchHasErrors($batch) {
+			$code = $batch['code'];
+			$batchBody = json_decode($batch['body'], true);
 			return $code != 200;
-			
 		}
 		
 		/**
