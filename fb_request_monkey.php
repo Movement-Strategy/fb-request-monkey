@@ -272,7 +272,6 @@
 			return $processedBatches;
 		}
 		
-		
 		/**
 		 * addDataFromProcessedResponseToResults function.
 		 * 
