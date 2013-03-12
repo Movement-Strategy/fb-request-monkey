@@ -402,7 +402,7 @@
 			
 			// the wrapper that data goes in is json_encoded in 
 			// batch responses, but not in single responses
-			$batchBody = json_decode($batch['body'], true);
+			 = json_decode($batch['body'], true);
 			// if its batched the count is wrapped in a 'body' key
 			
 			$processedBatch['hasErrors'] = $hasErrors;
@@ -412,7 +412,7 @@
 				
 				// if we don't want to throw error
 				if($allowErrors == true) {
-					$data = $batchBody;
+					$data = $body;
 				} else {
 					self::generateException($batch, $action);
 				}
@@ -422,10 +422,10 @@
 			
 				// certain types of requests have their data stored in a data key, others don't
 				// this handles this different behavior
-				if(isset($batchBody['data'])) {
-					$data = $batchBody['data'];
+				if(isset($body['data'])) {
+					$data = $body['data'];
 				} else {
-					$data = $batchBody;
+					$data = $body;
 				}
 				
 				// if there's only one item, calling count on the data array will return
@@ -436,11 +436,11 @@
 				
 				// if there's a count and limit specified, get them
 				// if not, set them as if there's a single result being returned
-				if(isset($batchBody['count']) && isset($batchBody['limit'])) {
-					$count = $batchBody['count'];
+				if(isset($body['count']) && isset($body['limit'])) {
+					$count = $body['count'];
 					$returnedDataCount = count($data);
-					$limit = $batchBody['limit'];
-					$offset = $batchBody['offset'];
+					$limit = $body['limit'];
+					$offset = $body['offset'];
 				} else {
 					$count = 1;
 					$returnedDataCount = 1;
@@ -477,7 +477,7 @@
 		 */
 		public static function batchHasErrors($batch) {
 			$code = $batch['code'];
-			$batchBody = json_decode($batch['body'], true);
+			$body = json_decode($batch['body'], true);
 			return $code != 200;
 		}
 		
