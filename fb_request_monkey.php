@@ -398,72 +398,75 @@
 			$limit = null;
 			
 			// check if there are errors in the response
-			$hasErrors = self::batchHasErrors($batch);
+			
 			
 			// the wrapper that data goes in is json_encoded in 
 			// batch responses, but not in single responses
 			$body = json_decode($batch['body'], true);
 			// if its batched the count is wrapped in a 'body' key
 			
-			$processedBatch['hasErrors'] = $hasErrors;
+			$processedBatch = self::handleErrors($processedBatch, $batch, $action, $allowErrors);
 			
-			// if there's an error in the response
-			if($hasErrors) {
-				
-				// if we don't want to throw error
-				if($allowErrors == true) {
-					$data = $body;
-				} else {
-					self::generateException($batch, $action);
-				}
 			
-			// if there aren't any errors
+			
+			// certain types of requests have their data stored in a data key, others don't
+			// this handles this different behavior
+			if(isset($body['data'])) {
+				$data = $body['data'];
 			} else {
-			
-				// certain types of requests have their data stored in a data key, others don't
-				// this handles this different behavior
-				if(isset($body['data'])) {
-					$data = $body['data'];
-				} else {
-					$data = $body;
-				}
-				
-				// if there's only one item, calling count on the data array will return
-				// an incorrect results, 
-				$processedBatch['hasOneItem'] = $hasOneItem;
-				
-				
-				
-				// if there's a count and limit specified, get them
-				// if not, set them as if there's a single result being returned
-				if(isset($body['count']) && isset($body['limit'])) {
-					$count = $body['count'];
-					$returnedDataCount = count($data);
-					$limit = $body['limit'];
-					$offset = $body['offset'];
-				} else {
-					$count = 1;
-					$returnedDataCount = 1;
-					$limit = 1;
-					$offset = 0;
-				}
-				
-				$hasMoreResults = $count > $limit;
-				
-				// add the needed variables into the response
-				$processedBatch['pageData'] = array(
-					'offset' => $offset,
-					'count' => $count,
-					'limit' => $limit,
-					'sentDataCount' => $count - $offset,
-					'returnedDataCount' => $returnedDataCount,
-				);
-				
+				$data = $body;
 			}
+			
+			// if there's only one item, calling count on the data array will return
+			// an incorrect results, 
+			$processedBatch['hasOneItem'] = $hasOneItem;
+			
+			
+			
+			// if there's a count and limit specified, get them
+			// if not, set them as if there's a single result being returned
+			if(isset($body['count']) && isset($body['limit'])) {
+				$count = $body['count'];
+				$returnedDataCount = count($data);
+				$limit = $body['limit'];
+				$offset = $body['offset'];
+			} else {
+				$count = 1;
+				$returnedDataCount = 1;
+				$limit = 1;
+				$offset = 0;
+			}
+			
+			$hasMoreResults = $count > $limit;
+			
+			// add the needed variables into the response
+			$processedBatch['pageData'] = array(
+				'offset' => $offset,
+				'count' => $count,
+				'limit' => $limit,
+				'sentDataCount' => $count - $offset,
+				'returnedDataCount' => $returnedDataCount,
+			);
+				
 			$processedBatch['hasMoreResults'] = $hasMoreResults;
 			$processedBatch['data'] = $data;
 			return $processedBatch;
 		} 
+		
+		public static function handleErrors($processedBatch, $batch, $action, $allowErrors) {
+			$hasErrors = self::batchHasErrors($batch);
+			$processedBatch['hasErrors'] = $hasErrors;
+			// if there's an error in the response
+			if($hasErrors) {
+				
+				// if we don't want to throw error
+				if(!$allowErrors) {
+					self::generateException($batch, $action);
+				}
+				
+			}
+			return $processedBatch;
+		}
 		
 		/**
 		 * batchResponseHasErrors function.
