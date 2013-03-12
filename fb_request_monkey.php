@@ -260,11 +260,11 @@
 			$processedBatches = __::chain($batches)
 				
 				// iterate over the responses
-				->map(function($batchResponse) use(&$responseIndex, $actions, $allowErrors) {
+				->map(function($batch) use(&$responseIndex, $actions, $allowErrors) {
 					
 					// get the action associated
 					$action = $actions[$responseIndex];
-					$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $action, $allowErrors);
+					$processedResponse = FB_Request_Monkey::processSingleResponse($batch, $action, $allowErrors);
 					$responseIndex++;
 					return $processedResponse;
 				})
