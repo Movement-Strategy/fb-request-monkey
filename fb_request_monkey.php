@@ -78,7 +78,7 @@
 				$processedResponses = array_merge($processedResponses, $overflowProcessedResponses);
 			}
 			self::checkDataCount($processedResponses, $allowErrors);
-			return $results;
+			return array();
 		}
 		
 		/**
@@ -100,6 +100,7 @@
 				
 		/**
 		 * getProcessedResponsesFromActions function.
+		 * 
 		 *
 		 * @access public
 		 * @static
@@ -108,13 +109,29 @@
 		 */
 		public static function getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken) {
 			$actionCount = count($actions);
-			$callQueue = self::getCallQueue($actions);
-			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
-			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
-			echo json_encode($responseQueue);
+			$responseQueue = self::getResponseQueueFromActions($actions, $failsafeToken);
 			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
 			return $processedResponses;
 		}
+		
+		/**
+		 * getResponseQueueFromActions function.
+		 * 
+		 * take the actions send them and get back the response queue
+		 * 
+		 * @access public
+		 * @static
+		 * @param mixed $actions
+		 * @param mixed $allowErrors
+		 * @param mixed $failsafeToken
+		 * @return void
+		 */
+		public static function getResponseQueueFromActions($actions, $failsafeToken) {
+			$callQueue = self::getCallQueue($actions);
+			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
+			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
+			return $responseQueue;
+		} 
 		
 		/**
 		 * getOverflowActions function.

@@ -16,7 +16,7 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 	$accessToken = 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD';
 	
-	$actionCount = 50;
+	$actionCount = 10;
 	
 	$testAction = array(
 	    'method' => 'GET',
@@ -29,7 +29,7 @@ require_once('../libs/fb_sdk/facebook.php');
 	while($i < $actionCount) {
 		$actions[$i] = array(
 		    'method' => 'GET',
-		    'query' => 'act_113004955487436/adgroups',
+		    'query' => '/me',
 		    'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
 		    'label' => 'ad_group_' . $i,
 		);
@@ -38,7 +38,7 @@ require_once('../libs/fb_sdk/facebook.php');
 
 	$results = FB_Request_Monkey::sendMany($actions, $fbConfig);
 	
-/* 	echo json_encode($results); */
+	echo json_encode($results);
 	
 	
 	

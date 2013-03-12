@@ -1,6 +1,107 @@
+		public static function getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken) {
+			$actionCount = count($actions);
+			$callQueue = self::getCallQueue($actions);
+			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
+			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
+			$responseQueue = self::fillInMissingResponses($responseQueue, $actions);
+			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
+			return $processedResponses;
+		}
+		
+		public static function fillInMissingData(responseQueue) {
+			fillInActions = array();
+			map responseQueue 
+				get response
+				if response is batched
+					if the response is null
+						get the action that corresponds to that response
+						$action = array(
+							// old action stuff,
+							label => array(
+								responseIndex,
+								batchIndex,
+							),
+						);
+						add action to fillInActions
+					end if
+				end if
+			end map	
+			if(filledInActions) {
+				$filledInResponses = getResponseQueueFromActions($filledInActions);
+				map filledInResponses 
+					if(isBatched) {
+						map the responses in the batch
+							get the action that corresponds to response
+							get the responseIndex from action
+							get the batchIndex from the action
+							responseQueue[responseIndex][batchIndex] = response;
+					} else {
+						get the response out of the batch and set it in the correct index
+					}
+				end map
+			}
+			return responseQueue;	
+		}
+		
+		public static function fillInMissingBatchResponses($response, $fillInCount) {
+			
+			fillInActions
+			
+			if($fillInCount < $maxFillInCount) {
+				map responseQueue
+					if is batched
+						map the responses
+							if the response is null
+								get the action that corresponds	tp the responses
+								remove any labels in teh current action
+								set the action in fillInActions
+						end map
+				end map
+				
+				if there are fillInActions
+					fillInResponseQueue = getResponseQueueFromActions($actions, $allowErrors, $failsafeToken);
+					$fillInCount++:
+					$fillInResponseQueue = fillInMissingResponses(fillInResponseQueue, $fillInCount);
+				map fillInResponseQueue
+					get the index out of the label for the result
+			} else {
+				throw Exception to many attempts to fill in responses, error!
+			}
+				
+				
+			
+			
+		}
+		
+		public static function getProcessedResponsesFromActions($actions, $allowErrors, $failsafeToken) {
+			$actionCount = count($actions);
+			$callQueue = self::getCallQueue($actions);
+			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
+			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
+			echo json_encode($responseQueue);
+			$processedResponses = self::processResponseQueue($responseQueue, $actionCount, $allowErrors);
+			return $processedResponses;
+		}
+		
+		public static function getResponseQueueFromActions($actions, $allowErrors, $failsafeToken) {
+			$actionCount = count($actions);
+			$callQueue = self::getCallQueue($actions);
+			$formattedCallQueue = self::formatCallQueue($callQueue, $failsafeToken);
+			$responseQueue = self::sendAllCalls($formattedCallQueue, $actions);
+			$responseQueue = self::fillInMissingData($responseQueue);
+		}
+		
 errorFormat = array(
 	array(
 		'code' => 200,
+		'headers' => array(
+		
+		),
+		'body' => array(
+			whatever
+		),
 	),
-	
+	null,
+	null,
+	null,
 );
