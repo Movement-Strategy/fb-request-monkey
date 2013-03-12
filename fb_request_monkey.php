@@ -402,7 +402,7 @@
 			
 			// the wrapper that data goes in is json_encoded in 
 			// batch responses, but not in single responses
-			 = json_decode($batch['body'], true);
+			$body = json_decode($batch['body'], true);
 			// if its batched the count is wrapped in a 'body' key
 			
 			$processedBatch['hasErrors'] = $hasErrors;
