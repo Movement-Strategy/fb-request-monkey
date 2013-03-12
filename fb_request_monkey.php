@@ -778,7 +778,6 @@
 		public static function getBatchParams($call, $failsafeToken) {
 			
 			$preparedActions = __::map($call, function($action) use($failsafeToken){
-				$batchItem = array();
 				$name = isset($action['name']) ? $action['name'] : null;
 				$params = isset($action['params']) ? $action['params'] : array();
 				$method = $action['method'];
