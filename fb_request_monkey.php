@@ -264,7 +264,7 @@
 					
 					// get the action associated
 					$action = $actions[$responseIndex];
-					$processedResponse = FB_Request_Monkey::processSingleResponse($batch, $action, $allowErrors);
+					$processedResponse = FB_Request_Monkey::processBatch($batch, $action, $allowErrors);
 					$responseIndex++;
 					return $processedResponse;
 				})
@@ -374,7 +374,7 @@
 		}
 				
 		/**
-		 * processSingleResponse function.
+		 * processBatch function.
 		 *
 		 * Identifies if the response has only a single item, gets and stores the count, offset and limit
 		 * gets the data for the response, identifies if the response has more results
@@ -386,7 +386,7 @@
 		 * @param array $action
 		 * @return array
 		 */
-		public static function processSingleResponse($response, $action, $allowErrors) {
+		public static function processBatch($batch, $action, $allowErrors) {
 			$processedResponse = array();
 			$processedResponse['action'] = $action;
 			$hasOneItem = false;
@@ -398,11 +398,11 @@
 			$limit = null;
 			
 			// check if there are errors in the response
-			$hasErrors = self::batchResponseHasErrors($response);
+			$hasErrors = self::batchResponseHasErrors($batch);
 			
 			// the wrapper that data goes in is json_encoded in 
 			// batch responses, but not in single responses
-			$responseBody = json_decode($response['body'], true);
+			$responseBody = json_decode($batch['body'], true);
 			// if its batched the count is wrapped in a 'body' key
 			
 			$processedResponse['hasErrors'] = $hasErrors;
@@ -414,7 +414,7 @@
 				if($allowErrors == true) {
 					$data = $responseBody;
 				} else {
-					self::generateException($response, $action);
+					self::generateException($batch, $action);
 				}
 			
 			// if there aren't any errors
