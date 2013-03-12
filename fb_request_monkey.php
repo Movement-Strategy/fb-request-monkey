@@ -235,28 +235,17 @@
 		public static function processResponseQueue($responseQueue, $actionCount, $allowErrors) {
 			$allProcessedResponses = __::chain($responseQueue)
 				
-				// iterate over all returned responses
-				->map(function($response) use($allowErrors){
+				// iterate over all the returned response packages
+				->map(function($responsePackage) use($allowErrors){
 					
 					// get all of the actions
-					$actions = $response['actions'];
+					$actions = $responsePackage['actions'];
 										
-					// get all of the batches in this response
-					$allResponses = $response['response'];
+					// get all of the batches in this response package 
+					$batches = $responsePackage['batches'];
 					
-					$responseIndex = 0;
-					return __::chain($allResponses)
-						
-						// iterate over the responses
-						->map(function($batchResponse) use(&$responseIndex, $actions, $allowErrors) {
-							
-							// get the action associated
-							$action = $actions[$responseIndex];
-							$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $action, $allowErrors);
-							$responseIndex++;
-							return $processedResponse;
-						})
-					->value();
+					$processedBatches = FB_Request_Monkey::processBatches($batches, $actions, $allowErrors);
+					return $processedBatches;
 					// if its a single response
 				})
 			->flatten(true)
@@ -265,6 +254,24 @@
 			
 			return $allProcessedResponses;
 		}
+		
+		public static function processBatches($batches, $actions, $allowErrors) {
+			$responseIndex = 0;
+			$processedBatches = __::chain($batches)
+				
+				// iterate over the responses
+				->map(function($batchResponse) use(&$responseIndex, $actions, $allowErrors) {
+					
+					// get the action associated
+					$action = $actions[$responseIndex];
+					$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $action, $allowErrors);
+					$responseIndex++;
+					return $processedResponse;
+				})
+			->value();
+			return $processedBatches;
+		}
+		
 		
 		/**
 		 * addDataFromProcessedResponseToResults function.
@@ -356,9 +363,9 @@
 			$responsePackages = __::map($formattedCallQueue, function($formattedCall) use($actions) {
 				
 				// is this a batch request or not
-				$response = FB_Request_Monkey::transmit($formattedCall);
+				$batches = FB_Request_Monkey::transmit($formattedCall);
 				$responsePackage =  array(
-					'response' => $response,
+					'batches' => $batches,
 					'actions' => $formattedCall['actions'],
 				);
 				return $responsePackage;
