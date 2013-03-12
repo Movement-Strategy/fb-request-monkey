@@ -387,8 +387,8 @@
 		 * @return array
 		 */
 		public static function processBatch($batch, $action, $allowErrors) {
-			$processedResponse = array();
-			$processedResponse['action'] = $action;
+			$processedBatch = array();
+			$processedBatch['action'] = $action;
 			$hasOneItem = false;
 			$returnedDataCount = 0;
 			$hasErrors = false;
@@ -405,7 +405,7 @@
 			$responseBody = json_decode($batch['body'], true);
 			// if its batched the count is wrapped in a 'body' key
 			
-			$processedResponse['hasErrors'] = $hasErrors;
+			$processedBatch['hasErrors'] = $hasErrors;
 			
 			// if there's an error in the response
 			if($hasErrors) {
@@ -430,7 +430,7 @@
 				
 				// if there's only one item, calling count on the data array will return
 				// an incorrect results, 
-				$processedResponse['hasOneItem'] = $hasOneItem;
+				$processedBatch['hasOneItem'] = $hasOneItem;
 				
 				
 				
@@ -451,7 +451,7 @@
 				$hasMoreResults = $count > $limit;
 				
 				// add the needed variables into the response
-				$processedResponse['pageData'] = array(
+				$processedBatch['pageData'] = array(
 					'offset' => $offset,
 					'count' => $count,
 					'limit' => $limit,
@@ -460,9 +460,9 @@
 				);
 				
 			}
-			$processedResponse['hasMoreResults'] = $hasMoreResults;
-			$processedResponse['data'] = $data;
-			return $processedResponse;
+			$processedBatch['hasMoreResults'] = $hasMoreResults;
+			$processedBatch['data'] = $data;
+			return $processedBatch;
 		} 
 		
 		/**
