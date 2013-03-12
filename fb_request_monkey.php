@@ -233,7 +233,6 @@
 		 * @return array
 		 */
 		public static function processResponseQueue($responseQueue, $actionCount, $allowErrors) {
-			
 			$allProcessedResponses = __::chain($responseQueue)
 				
 				// iterate over all returned responses
@@ -258,6 +257,7 @@
 								
 								// get the action associated
 								$action = $actions[$responseIndex];
+								print_r($action);
 								$processedResponse = FB_Request_Monkey::processSingleResponse($batchResponse, $isBatched, $action, $allowErrors);
 								$responseIndex++;
 								return $processedResponse;
@@ -386,7 +386,6 @@
 				}
 				
 				$response = FB_Request_Monkey::transmit($formattedCall);
-				
 				$isFirst = false;
 				$output =  array(
 					'response' => $response,

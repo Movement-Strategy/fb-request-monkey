@@ -423,7 +423,7 @@
 							array(
 								array(
 									'batch_data' => array(
-										'test1', 
+										'test', 
 									),
 								),
 							)
@@ -439,7 +439,7 @@
 					'expected' => array(
 						'data' => array(
 							array(
-								'test1',
+								'test',
 							),
 						),
 					),
@@ -449,54 +449,60 @@
 		
 		public function getPagedUnbatchedResponseConfiguration($action, $response) {
 						
+			$actions = array(
+			);
 			return array(
 				'input' => array(
 					'responses' => array(
 						$response(
-							'paged_unbatched', 
+							'paged_batched', 
 							array(
-								'test1',
+								array(
+									'batch_data' => array(
+										'stuff1',
+									),
+									'batch_count' => 2,
+									'batch_limit' => 1,
+								),
 							),
-							
-							1, // limit 
-							2 // count	
+							$actions
 						),
 					),
 					'overflow_responses' => array(
 						$response(
-							'paged_unbatched', 
+							'paged_batched', 
 							array(
-								'test2',
+								array(
+									'batch_data' => array(
+										'stuff2',
+									),
+									'batch_count' => 2,
+									'batch_limit' => 1,
+								),
 							),
-							
-							1, // limit
-							2 // count	
+							$actions
 						),
 					),
 					'actions' => array(
 						$action(
 							'me'
 						),
-					),
-								
+					),			
 				),
 				'assert_input' => array(
 					'expected' => array(
 						'data' => array(
 							array(
-								array(
-									'test1',
-								),
+								'stuff1',
 							),
 							array(
-								array(
-									'test2',
-								),
+								'stuff2',
 							),
 						),
 					),
 				),
 			);
+			
 		}
 		
 		public function getUnpagedBatchedResponseConfiguration($action, $response) {
@@ -880,14 +886,14 @@
 				'configuration' => 'unpaged_unbatched_response',
 				'alterations' => array(
 					'input' => function($input) {
-						$input['actions'][0]['label'] = 'test';
+						$input['actions'][0]['label'] = 'test_label';
 						return $input;
 					},
 					'assert_input' => function($assertInput) {
 						$assertInput['expected'] = array(
-							'test' => array(
+							'test_label' => array(
 								array(
-									'test1' => 'test',
+									'test',
 								),
 							),
 						);
@@ -913,7 +919,7 @@
 							'label1' => array(
 								'label2' => array(
 									array(
-										'test1' => 'test',
+										'test',
 									),
 								),
 							),
