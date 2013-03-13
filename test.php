@@ -16,7 +16,7 @@ require_once('../libs/fb_sdk/facebook.php');
 		
 	$accessToken = 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD';
 	
-	$actionCount = 100;
+	$actionCount = 1;
 	
 	$testAction = array(
 	    'method' => 'GET',
@@ -39,7 +39,7 @@ require_once('../libs/fb_sdk/facebook.php');
 			    'method' => 'GET',
 			    'query' => "act_$account/adcampaigns",
 			    'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
-			    'label' => 'act_' . $account,
+/* 			    'label' => 'act_' . $account, */
 			);
 			$i++;
 		}
@@ -47,13 +47,15 @@ require_once('../libs/fb_sdk/facebook.php');
 	}
 	
 	$results = FB_Request_Monkey::sendMany($actions, $fbConfig);
+/*
 	$output = $output = __::map($results, function($result, $account) {
 		$flattenedResult = __::flatten($result, true);
 		return count($flattenedResult);
 	});
+*/
 	
 		
-	echo json_encode($output);
+	echo json_encode($results);
 	
 	
 	
