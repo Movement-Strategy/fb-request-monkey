@@ -24,20 +24,37 @@ require_once('../libs/fb_sdk/facebook.php');
 	    'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
 	);		
 	
+	$accounts = array(
+		'105056166273966',
+		'114445558699214',
+		'104058953017112'
+	);
+	
 	$actions = array();
 	$i = 0;
-	while($i < $actionCount) {
-		$actions[$i] = array(
-		    'method' => 'GET',
-		    'query' => 'act_113004955487436/adgroups',
-		    'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
-		    'label' => 'ad_group_' . $i,
-		);
-		$i++;
+	$currentActionCount = 0;
+	while($currentActionCount < $actionCount) {
+		foreach($accounts as $account) {
+			$actions[$i] = array(
+			    'method' => 'GET',
+			    'query' => "act_$account/adcampaigns",
+			    'token' => 'AAACZAvGW91SwBAAwx0d8DKTpkwkZCXP2yvF5UK2YNPYJVcDThI7HTFImTutxXrJQH2icFSLZBIkwOr4qD0SxUnMD01rFQJYgNZCfpgFh1wZDZD',
+			    'label' => 'act_' . $account,
+			);
+			$i++;
+		}
+		$currentActionCount++;
 	}
 	
 	$results = FB_Request_Monkey::sendMany($actions, $fbConfig);
-	echo count($results);	
+	$output = $output = __::map($results, function($result, $account) {
+		$flattenedResult = __::flatten($result, true);
+		return count($flattenedResult);
+	});
+	
+		
+	echo json_encode($output);
+	
 	
 	
 	

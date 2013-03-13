@@ -529,15 +529,9 @@
 				'assert_input' => array(
 					'expected' => array(
 						'data' => array(
-							array(
-								'test1',
-							),
-							array(
-								'test2',
-							),
-							array(
-								'test3',
-							),
+							'test1',
+							'test2',
+							'test3',
 						),
 					),
 				),
@@ -568,9 +562,7 @@
 				'assert_input' => array(
 					'expected' => array(
 						'data' => array(
-							array(
-								'test1',
-							),
+							'test1',
 						),
 					),
 				),
@@ -640,18 +632,10 @@
 				'assert_input' => array(
 					'expected' => array(
 						'data' => array(
-							array(
-								'stuff1',
-							),
-							array(
-								'things1',
-							),
-							array(
-								'stuff2',
-							),
-							array(
-								'things2',
-							),
+							'stuff1',
+							'things1',
+							'stuff2',
+							'things2',
 						),
 					),
 				),
@@ -679,7 +663,7 @@
 				);
 				array_push($actions, $newAction);
 				array_push($dataForResponses, $dataForResponse);
-				array_push($expectedData, $currentData);
+				array_push($expectedData, $currentData[0]);
 				$i++;
 				
 			}
@@ -941,15 +925,11 @@
 					},
 					'assert_input' => function($assertInput) {
 						$assertInput['expected']['data'] = array(
-							array(
-								'test1',
-							),
-							array(
-								'error' => array(
-									'message' => 'test',
-									'type' => 'test',
-									'code' => 299,
-								),
+							'test1',
+							'error' => array(
+								'message' => 'test',
+								'type' => 'test',
+								'code' => 299,
 							),
 						);
 						
@@ -985,21 +965,12 @@
 					'assert_input' => function($assertInput) {
 						$assertInput['expected'] = array(
 							'stuff' => array(
-								
-								array(
-									'stuff1',
-								),
-								array(
-									'stuff2',
-								),
+								'stuff1',
+								'stuff2',
 							),
 							'things' => array(
-								array(
-									'things1',
-								),
-								array(
-									'things2',
-								),
+								'things1',
+								'things2',
 							),
 						);
 						return $assertInput;
@@ -1025,21 +996,12 @@
 						$assertInput['expected'] = array(
 							'stuff_and_things' => array(
 								'stuff' => array(
-									
-									array(
-										'stuff1',
-									),
-									array(
-										'stuff2',
-									),
+									'stuff1',
+									'stuff2',
 								),
 								'things' => array(
-									array(
-										'things1',
-									),
-									array(
-										'things2',
-									),
+									'things1',
+									'things2',
 								),
 							),
 						);

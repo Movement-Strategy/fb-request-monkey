@@ -401,7 +401,7 @@
 				}
 				
 				// add the results to this level
-				array_push($currentLevel[$currentLabel], $resultToAdd);
+				$currentLevel[$currentLabel] = array_merge($currentLevel[$currentLabel], $resultToAdd);
 				return $currentLevel;
 			}
 		}
